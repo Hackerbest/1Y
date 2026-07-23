@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เช็นรับพัสดุ</title>
+
+<style>
+@font-face {
+    font-family: "FC Issara Rounded";
+    src: url("FC_Issara_Rounded.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+:root {
+    --night: #070508;
+    --ink: #fff9ef;
+    --muted: rgba(255, 249, 239, 0.72);
+    --gold: #f6c76f;
+    --rose: #ff6f95;
+    --aqua: #77e7d7;
+    --shadow: rgba(0, 0, 0, 0.58);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    color: var(--ink);
+    background: var(--night);
+    font-family: "FC Issara Rounded", "Leelawadee UI", Tahoma, sans-serif;
+    letter-spacing: 0;
+}
+
+.stage {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: 32px;
+    isolation: isolate;
+}
+
+.stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -5;
+    background:
+        radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.88) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 72% 38%, rgba(119, 231, 215, 0.78) 0 1px, transparent 2px),
+        radial-gradient(circle at 42% 74%, rgba(255, 174, 196, 0.72) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 20% 55%, rgba(115, 38, 58, 0.58), transparent 42%),
+        radial-gradient(circle at 78% 48%, rgba(25, 92, 92, 0.46), transparent 45%),
+        radial-gradient(circle at 50% 35%, rgba(139, 91, 62, 0.30), transparent 38%),
+        linear-gradient(135deg, #07060a 0%, #1d1018 35%, #11191a 66%, #04080a 100%);
+    background-size:
+        170px 170px,
+        240px 240px,
+        310px 310px,
+        100% 100%,
+        100% 100%,
+        100% 100%,
+        100% 100%;
+    transform: scale(1.04);
+}
+
+.stage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -4;
+    background:
+        linear-gradient(90deg, rgba(246, 199, 111, 0.11) 0 1px, transparent 1px 120px),
+        linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 120px);
+    mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
+}
+
+canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+#sparkField {
+    z-index: -3;
+}
+
+.aurora-layer,
+.heart-vortex {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+}
+
+.aurora-layer {
+    z-index: -2;
+    overflow: hidden;
+    mix-blend-mode: screen;
+}
+
+.aurora-layer span {
+    position: absolute;
+    left: -18vw;
+    width: 136vw;
+    height: 18vh;
+    border-radius: 50%;
+    background: linear-gradient(90deg, transparent, rgba(255, 111, 149, 0.38), rgba(119, 231, 215, 0.28), transparent);
+    filter: blur(18px);
+    opacity: 0.62;
+    transform-origin: center;
+    animation: auroraDrift 8s ease-in-out infinite alternate;
+}
+
+.aurora-layer span:nth-child(1) {
+    top: 18vh;
+    transform: rotate(-11deg);
+}
+
+.aurora-layer span:nth-child(2) {
+    top: 42vh;
+    animation-delay: -2s;
+    transform: rotate(8deg);
+}
+
+.aurora-layer span:nth-child(3) {
+    top: 68vh;
+    animation-delay: -4s;
+    transform: rotate(-6deg);
+}
+
+.heart-vortex {
+    z-index: 2;
+}
+
+.laser-grid,
+.spark-trail-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+}
+
+.laser-grid {
+    z-index: 1;
+    overflow: hidden;
+    mix-blend-mode: screen;
+}
+
+.laser-grid span {
+    position: absolute;
+    left: -24vw;
+    width: 148vw;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, rgba(255, 249, 239, 0.04), var(--color), rgba(255, 249, 239, 0.18), transparent);
+    box-shadow: 0 0 22px var(--color);
+    transform: translateY(var(--y)) rotate(var(--rot));
+    animation: laserSweep var(--speed) ease-in-out infinite alternate;
+    opacity: 0.62;
+}
+
+.laser-grid span:nth-child(1) { --y: 16vh; --rot: -14deg; --speed: 4.8s; --color: rgba(255, 111, 149, 0.72); }
+.laser-grid span:nth-child(2) { --y: 36vh; --rot: 9deg; --speed: 5.4s; --color: rgba(119, 231, 215, 0.62); animation-delay: -1.6s; }
+.laser-grid span:nth-child(3) { --y: 58vh; --rot: -5deg; --speed: 4.2s; --color: rgba(246, 199, 111, 0.7); animation-delay: -2.4s; }
+.laser-grid span:nth-child(4) { --y: 78vh; --rot: 13deg; --speed: 5.8s; --color: rgba(156, 134, 255, 0.58); animation-delay: -3.1s; }
+
+.spark-trail-layer {
+    z-index: 6;
+}
+
+.pointer-spark {
+    position: fixed;
+    left: var(--x);
+    top: var(--y);
+    z-index: 6;
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+    background: var(--color);
+    box-shadow: 0 0 18px var(--color);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    animation: pointerSpark 640ms ease-out forwards;
+}
+
+.love-bit {
+    position: fixed;
+    left: var(--x);
+    top: var(--y);
+    color: var(--color);
+    font-size: var(--size);
+    text-shadow: 0 0 18px currentColor;
+    transform: translate(-50%, -50%);
+    animation: loveFloat var(--duration) ease-in forwards;
+}
+
+.curtain {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: 50vw;
+    z-index: 4;
+    pointer-events: none;
+    background:
+        linear-gradient(90deg, rgba(7, 5, 8, 0.96), rgba(38, 13, 26, 0.9)),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 34px);
+    box-shadow: 0 0 80px rgba(0, 0, 0, 0.72);
+    transition: transform 1100ms cubic-bezier(.76, 0, .24, 1);
+}
+
+.curtain-left {
+    left: 0;
+}
+
+.curtain-right {
+    right: 0;
+    transform: scaleX(-1);
+}
+
+.loaded .curtain-left {
+    transform: translateX(-102%);
+}
+
+.loaded .curtain-right {
+    transform: translateX(102%) scaleX(-1);
+}
+
+.scene {
+    width: min(980px, 100%);
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 44px;
+    align-items: center;
+}
+
+.copy {
+    position: relative;
+    z-index: 1;
+}
+
+.kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 34px;
+    padding: 6px 14px;
+    border: 1px solid rgba(255, 249, 239, 0.32);
+    border-radius: 999px;
+    background: rgba(7, 5, 8, 0.36);
+    color: var(--muted);
+    font-size: 18px;
+    backdrop-filter: blur(12px);
+}
+
+.kicker::before {
+    content: "";
+    width: 30px;
+    height: 1px;
+    background: var(--gold);
+    box-shadow: 0 0 18px var(--gold);
+}
+
+h1 {
+    max-width: 640px;
+    margin: 24px 0 18px;
+    font-size: 82px;
+    line-height: 0.94;
+    font-weight: 700;
+    text-shadow: 0 26px 70px var(--shadow);
+}
+
+.subtitle {
+    max-width: 560px;
+    margin: 0 0 34px;
+    color: var(--muted);
+    font-size: 24px;
+    line-height: 1.5;
+}
+
+.launch-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+}
+
+.open-button {
+    position: relative;
+    min-width: 250px;
+    min-height: 58px;
+    padding: 13px 28px;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #fff9ef, var(--gold) 56%, var(--aqua));
+    color: #1b1014;
+    font: inherit;
+    font-size: 23px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow:
+        0 22px 46px rgba(0, 0, 0, 0.36),
+        0 0 0 1px rgba(255, 255, 255, 0.34) inset;
+    transition: transform 180ms ease, filter 180ms ease;
+}
+
+.open-button:hover,
+.open-button:focus-visible {
+    transform: translateY(-3px);
+    filter: brightness(1.06);
+    outline: none;
+}
+
+.mini-note {
+    color: rgba(255, 249, 239, 0.62);
+    font-size: 18px;
+}
+
+.signature-card {
+    position: relative;
+    width: min(460px, 100%);
+    padding: 12px;
+    border: 1px solid rgba(255, 249, 239, 0.26);
+    border-radius: 8px;
+    background:
+        linear-gradient(135deg, rgba(255, 249, 239, 0.12), rgba(119, 231, 215, 0.08)),
+        rgba(7, 5, 8, 0.34);
+    box-shadow:
+        0 24px 60px rgba(0, 0, 0, 0.34),
+        0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+    backdrop-filter: blur(14px);
+}
+
+.signature-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.signature-title {
+    color: rgba(255, 249, 239, 0.9);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.signature-clear {
+    min-width: 54px;
+    min-height: 32px;
+    border: 1px solid rgba(255, 249, 239, 0.24);
+    border-radius: 999px;
+    background: rgba(255, 249, 239, 0.08);
+    color: rgba(255, 249, 239, 0.74);
+    font: inherit;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.signature-board {
+    position: relative;
+    height: 124px;
+    overflow: hidden;
+    border-radius: 8px;
+    background:
+        radial-gradient(circle at 14% 12%, rgba(246, 199, 111, 0.26), transparent 34%),
+        linear-gradient(135deg, rgba(255, 111, 149, 0.18), rgba(119, 231, 215, 0.16)),
+        rgba(255, 249, 239, 0.08);
+}
+
+.signature-board::before {
+    content: "เซ็นตรงนี้";
+    position: absolute;
+    left: 18px;
+    top: 16px;
+    color: rgba(255, 249, 239, 0.38);
+    font-size: 18px;
+    pointer-events: none;
+}
+
+.signature-board::after {
+    content: "";
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: 28px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255, 249, 239, 0.55), transparent);
+    box-shadow: 0 0 18px rgba(246, 199, 111, 0.32);
+    pointer-events: none;
+}
+
+#signatureCanvas {
+    position: relative;
+    inset: auto;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    height: 124px;
+    pointer-events: auto;
+    touch-action: none;
+    cursor: crosshair;
+}
+
+.signature-hint {
+    margin: 8px 4px 0;
+    color: rgba(255, 249, 239, 0.6);
+    font-size: 15px;
+}
+
+.signature-card.signed {
+    border-color: rgba(246, 199, 111, 0.6);
+    box-shadow:
+        0 28px 70px rgba(0, 0, 0, 0.42),
+        0 0 34px rgba(246, 199, 111, 0.2);
+}
+
+.showpiece {
+    position: relative;
+    min-height: 520px;
+    display: grid;
+    place-items: center;
+    perspective: 1200px;
+    cursor: pointer;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    outline: none;
+}
+
+.showpiece::after {
+    content: "แตะกล่อง";
+    position: absolute;
+    left: 50%;
+    bottom: 66px;
+    z-index: 3;
+    min-height: 34px;
+    padding: 6px 14px;
+    border: 1px solid rgba(255, 249, 239, 0.28);
+    border-radius: 999px;
+    color: rgba(255, 249, 239, 0.86);
+    background: rgba(7, 5, 8, 0.36);
+    backdrop-filter: blur(12px);
+    transform: translateX(-50%);
+    animation: tapHint 1.4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.showpiece:hover .gift-3d,
+.showpiece:focus-visible .gift-3d {
+    filter: brightness(1.12) drop-shadow(0 0 32px rgba(246, 199, 111, 0.34));
+}
+
+.showpiece:focus-visible::after {
+    border-color: rgba(246, 199, 111, 0.82);
+}
+
+.beam {
+    position: absolute;
+    width: 260px;
+    height: 620px;
+    background: linear-gradient(180deg, rgba(246, 199, 111, 0), rgba(246, 199, 111, 0.34), rgba(119, 231, 215, 0));
+    transform: rotate(19deg);
+    filter: blur(8px);
+    opacity: 0.86;
+}
+
+.energy-ring {
+    position: absolute;
+    width: 310px;
+    height: 310px;
+    border: 1px solid rgba(255, 249, 239, 0.22);
+    border-radius: 50%;
+    box-shadow:
+        0 0 28px rgba(246, 199, 111, 0.16),
+        inset 0 0 32px rgba(119, 231, 215, 0.1);
+    animation: energySpin 9s linear infinite;
+}
+
+.energy-ring::before,
+.energy-ring::after {
+    content: "";
+    position: absolute;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 22px var(--gold);
+}
+
+.energy-ring::before {
+    left: 50%;
+    top: -6px;
+}
+
+.energy-ring::after {
+    right: 8%;
+    bottom: 14%;
+    background: var(--aqua);
+    box-shadow: 0 0 22px var(--aqua);
+}
+
+.energy-ring:nth-of-type(2) {
+    width: 382px;
+    height: 382px;
+    animation-duration: 13s;
+    animation-direction: reverse;
+}
+
+.energy-ring:nth-of-type(3) {
+    width: 452px;
+    height: 452px;
+    animation-duration: 17s;
+}
+
+.gift-3d {
+    position: relative;
+    width: 230px;
+    height: 230px;
+    transform-style: preserve-3d;
+    animation: floatGift 4.4s ease-in-out infinite;
+}
+
+.box-face {
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(255, 249, 239, 0.32);
+    background:
+        linear-gradient(90deg, transparent 43%, rgba(255, 249, 239, 0.72) 43% 57%, transparent 57%),
+        linear-gradient(135deg, rgba(255, 111, 149, 0.98), rgba(246, 199, 111, 0.96));
+    box-shadow: 0 26px 60px rgba(0, 0, 0, 0.44);
+}
+
+.front {
+    transform: translateZ(115px);
+}
+
+.back {
+    transform: rotateY(180deg) translateZ(115px);
+}
+
+.right {
+    transform: rotateY(90deg) translateZ(115px);
+}
+
+.left {
+    transform: rotateY(-90deg) translateZ(115px);
+}
+
+.top {
+    transform: rotateX(90deg) translateZ(115px);
+}
+
+.bottom {
+    transform: rotateX(-90deg) translateZ(115px);
+}
+
+.ribbon {
+    position: absolute;
+    left: 50%;
+    top: -76px;
+    width: 138px;
+    height: 74px;
+    transform: translateX(-50%) translateZ(126px);
+    border: 14px solid var(--gold);
+    border-bottom: 0;
+    border-radius: 80px 80px 0 0;
+    filter: drop-shadow(0 0 18px rgba(246, 199, 111, 0.6));
+}
+
+.date-strip {
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    width: min(480px, 78vw);
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 6px;
+    transform: translateX(-50%);
+}
+
+.date-strip span {
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(255, 249, 239, 0.18);
+    overflow: hidden;
+}
+
+.date-strip span::before {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--rose), var(--gold), var(--aqua));
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: loadMonth 1600ms ease forwards;
+    animation-delay: calc(var(--i) * 80ms + 800ms);
+}
+
+.countdown {
+    position: fixed;
+    inset: 0;
+    z-index: 8;
+    display: none;
+    place-items: center;
+    background: rgba(7, 5, 8, 0.84);
+    backdrop-filter: blur(12px);
+}
+
+.countdown.show {
+    display: grid;
+}
+
+.count-box {
+    text-align: center;
+}
+
+.count-num {
+    display: block;
+    min-width: 220px;
+    font-size: 148px;
+    line-height: 0.9;
+    color: var(--gold);
+    text-shadow: 0 0 38px rgba(246, 199, 111, 0.6);
+}
+
+.count-text {
+    display: block;
+    color: rgba(255, 249, 239, 0.84);
+    font-size: 30px;
+}
+
+.opening .gift-3d {
+    animation: giftOpen 1100ms cubic-bezier(.2, .9, .18, 1) forwards;
+}
+
+.opening .scene {
+    animation: scenePulse 780ms ease-out;
+}
+
+.opening .open-button {
+    pointer-events: none;
+}
+
+.opening .showpiece {
+    pointer-events: none;
+}
+
+.opening .signature-card {
+    pointer-events: none;
+    opacity: 0.72;
+}
+
+.opening .showpiece::after {
+    animation: none;
+    opacity: 0;
+    transform: translateX(-50%) translateY(12px) scale(0.88);
+}
+
+.confetti {
+    position: fixed;
+    left: var(--x);
+    top: var(--y);
+    z-index: 9;
+    width: 9px;
+    height: 16px;
+    border-radius: 2px;
+    background: var(--color);
+    pointer-events: none;
+    animation: fly 1100ms ease-out forwards;
+}
+
+.shockwave {
+    position: fixed;
+    left: var(--x);
+    top: var(--y);
+    z-index: 7;
+    width: 28px;
+    height: 28px;
+    border: 2px solid rgba(255, 249, 239, 0.72);
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    animation: shockwave 900ms ease-out forwards;
+}
+
+@keyframes auroraDrift {
+    to { transform: translateX(12vw) rotate(var(--twist, 6deg)) scaleY(1.3); }
+}
+
+@keyframes laserSweep {
+    to { transform: translate(12vw, var(--y)) rotate(calc(var(--rot) * -1)); opacity: 0.9; }
+}
+
+@keyframes pointerSpark {
+    to {
+        transform: translate(calc(var(--dx) - 50%), calc(var(--dy) - 50%)) scale(0.2);
+        opacity: 0;
+    }
+}
+
+@keyframes energySpin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes scenePulse {
+    0% { transform: scale(1); filter: brightness(1); }
+    45% { transform: scale(1.025); filter: brightness(1.18); }
+    100% { transform: scale(1); filter: brightness(1); }
+}
+
+@keyframes tapHint {
+    0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.72; }
+    50% { transform: translateX(-50%) translateY(-6px); opacity: 1; }
+}
+
+@keyframes floatGift {
+    0%, 100% { transform: rotateX(-13deg) rotateY(-22deg) translateY(0); }
+    50% { transform: rotateX(-9deg) rotateY(18deg) translateY(-16px); }
+}
+
+@keyframes giftOpen {
+    0% { transform: rotateX(-13deg) rotateY(-22deg) scale(1); }
+    45% { transform: rotateX(-18deg) rotateY(34deg) scale(1.12); }
+    100% { transform: rotateX(-4deg) rotateY(120deg) translateY(34px) scale(0.2); opacity: 0; }
+}
+
+@keyframes loadMonth {
+    to { transform: scaleX(1); }
+}
+
+@keyframes fly {
+    to {
+        transform: translate(var(--dx), var(--dy)) rotate(var(--rot));
+        opacity: 0;
+    }
+}
+
+@keyframes loveFloat {
+    to {
+        transform: translate(calc(var(--dx) - 50%), calc(var(--dy) - 50%)) rotate(var(--rot)) scale(0.35);
+        opacity: 0;
+    }
+}
+
+@keyframes shockwave {
+    to {
+        width: 720px;
+        height: 720px;
+        opacity: 0;
+    }
+}
+
+@media (max-width: 900px) {
+    .scene {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        text-align: center;
+    }
+
+    h1,
+    .subtitle {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .launch-row {
+        justify-content: center;
+    }
+
+    .showpiece {
+        min-height: 390px;
+        order: -1;
+    }
+
+    .gift-3d {
+        width: 172px;
+        height: 172px;
+    }
+
+    .front { transform: translateZ(86px); }
+    .back { transform: rotateY(180deg) translateZ(86px); }
+    .right { transform: rotateY(90deg) translateZ(86px); }
+    .left { transform: rotateY(-90deg) translateZ(86px); }
+    .top { transform: rotateX(90deg) translateZ(86px); }
+    .bottom { transform: rotateX(-90deg) translateZ(86px); }
+
+    .ribbon {
+        transform: translateX(-50%) translateZ(96px);
+    }
+}
+
+@media (max-width: 560px) {
+    .stage {
+        padding: 20px 16px;
+    }
+
+    h1 {
+        font-size: 48px;
+    }
+
+    .subtitle {
+        font-size: 20px;
+    }
+
+    .kicker {
+        font-size: 16px;
+    }
+
+    .open-button {
+        width: 100%;
+        min-width: 0;
+        font-size: 21px;
+    }
+
+    .signature-card {
+        width: 100%;
+    }
+
+    .signature-board,
+    #signatureCanvas {
+        height: 112px;
+    }
+
+    .count-num {
+        font-size: 104px;
+    }
+
+    .count-text {
+        font-size: 24px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 1ms !important;
+    }
+}
+</style>
+</head>
+
+<body>
+<main class="stage" id="stage">
+    <canvas id="sparkField" aria-hidden="true"></canvas>
+    <div class="aurora-layer" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="laser-grid" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    <div class="spark-trail-layer" id="sparkTrailLayer" aria-hidden="true"></div>
+    <div class="heart-vortex" id="heartVortex" aria-hidden="true"></div>
+    <div class="curtain curtain-left" aria-hidden="true"></div>
+    <div class="curtain curtain-right" aria-hidden="true"></div>
+
+    <section class="scene" aria-label="เริ่มเปิดเซอร์ไพรส์วันครบรอบ">
+        <div class="copy">
+            <div class="kicker">B & N Express</div>
+            <h1>มีพัสดุมา ส่งงับ</h1>
+            <div class="launch-row">
+                <div class="signature-card" id="signatureCard">
+                    <div class="signature-head">
+                        <span class="signature-title">เช็นชื่อเพื่อ รับพัสดุ</span>
+                        <button class="signature-clear" type="button" id="clearSignature">ล้าง</button>
+                    </div>
+                    <div class="signature-board">
+                        <canvas id="signatureCanvas" aria-label="ลากเส้นเพื่อลงชื่อรับของขวัญ"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="showpiece" id="giftTrigger" role="button" tabindex="0" aria-label="แตะกล่องของขวัญเพื่อเปิดเซอร์ไพรส์">
+            <div class="beam"></div>
+            <div class="energy-ring"></div>
+            <div class="energy-ring"></div>
+            <div class="energy-ring"></div>
+            <div class="gift-3d">
+                <div class="box-face front"></div>
+                <div class="box-face back"></div>
+                <div class="box-face right"></div>
+                <div class="box-face left"></div>
+                <div class="box-face top"></div>
+                <div class="box-face bottom"></div>
+                <div class="ribbon"></div>
+            </div>
+            <div class="date-strip">
+                <span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span>
+                <span style="--i:4"></span><span style="--i:5"></span><span style="--i:6"></span><span style="--i:7"></span>
+                <span style="--i:8"></span><span style="--i:9"></span><span style="--i:10"></span><span style="--i:11"></span>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div class="countdown" id="countdown" aria-live="polite">
+    <div class="count-box">
+        <span class="count-num" id="countNum">3</span>
+        <span class="count-text" id="countText">กำลังเปิดความทรงจำ</span>
+    </div>
+</div>
+
+<script>
+const stage = document.getElementById("stage");
+const button = document.getElementById("startButton");
+const giftTrigger = document.getElementById("giftTrigger");
+const signatureCard = document.getElementById("signatureCard");
+const signatureCanvas = document.getElementById("signatureCanvas");
+const clearSignature = document.getElementById("clearSignature");
+const signatureHint = document.getElementById("signatureHint");
+const countdown = document.getElementById("countdown");
+const countNum = document.getElementById("countNum");
+const countText = document.getElementById("countText");
+const heartVortex = document.getElementById("heartVortex");
+const sparkTrailLayer = document.getElementById("sparkTrailLayer");
+const canvas = document.getElementById("sparkField");
+const ctx = canvas.getContext("2d");
+const colors = ["#fff9ef", "#f6c76f", "#ff6f95", "#77e7d7"];
+const hearts = ["รัก", "365", "♥", "เรา", "💖"];
+let stars = [];
+let audioStarted = false;
+let lastSparkAt = 0;
+let signatureCtx = null;
+let signing = false;
+let signatureDistance = 0;
+let signatureLastPoint = null;
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth * window.devicePixelRatio;
+    canvas.height = window.innerHeight * window.devicePixelRatio;
+    ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+}
+
+function seedStars() {
+    stars = Array.from({ length: 140 }, () => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        r: Math.random() * 1.7 + 0.35,
+        a: Math.random() * 0.72 + 0.18,
+        v: Math.random() * 0.18 + 0.04,
+        c: colors[Math.floor(Math.random() * colors.length)]
+    }));
+}
+
+function drawStars() {
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    stars.forEach((star) => {
+        star.y -= star.v;
+        if (star.y < -8) {
+            star.y = window.innerHeight + 8;
+            star.x = Math.random() * window.innerWidth;
+        }
+        ctx.globalAlpha = star.a;
+        ctx.fillStyle = star.c;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+        ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(drawStars);
+}
+
+function chime() {
+    if (audioStarted) return;
+    audioStarted = true;
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const audio = new AudioContext();
+    const notes = [523.25, 659.25, 783.99, 1046.5];
+    notes.forEach((note, index) => {
+        const osc = audio.createOscillator();
+        const gain = audio.createGain();
+        osc.type = "sine";
+        osc.frequency.value = note;
+        gain.gain.setValueAtTime(0, audio.currentTime + index * 0.11);
+        gain.gain.linearRampToValueAtTime(0.12, audio.currentTime + index * 0.11 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + index * 0.11 + 0.38);
+        osc.connect(gain);
+        gain.connect(audio.destination);
+        osc.start(audio.currentTime + index * 0.11);
+        osc.stop(audio.currentTime + index * 0.11 + 0.42);
+    });
+}
+
+function resizeSignatureCanvas() {
+    if (!signatureCanvas) return;
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    const rect = signatureCanvas.getBoundingClientRect();
+    signatureCanvas.width = Math.max(1, Math.round(rect.width * ratio));
+    signatureCanvas.height = Math.max(1, Math.round(rect.height * ratio));
+    signatureCtx = signatureCanvas.getContext("2d");
+    signatureCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    signatureCtx.lineCap = "round";
+    signatureCtx.lineJoin = "round";
+    signatureCtx.lineWidth = 4;
+    signatureCtx.strokeStyle = "#fff9ef";
+    signatureCtx.shadowColor = "rgba(246, 199, 111, 0.62)";
+    signatureCtx.shadowBlur = 8;
+}
+
+function signaturePoint(event) {
+    const rect = signatureCanvas.getBoundingClientRect();
+    return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+    };
+}
+
+function beginSignature(event) {
+    if (!signatureCtx || stage.classList.contains("opening")) return;
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    event.preventDefault();
+    signing = true;
+    signatureCanvas.setPointerCapture(event.pointerId);
+    signatureLastPoint = signaturePoint(event);
+    signatureCtx.beginPath();
+    signatureCtx.moveTo(signatureLastPoint.x, signatureLastPoint.y);
+}
+
+function drawSignature(event) {
+    if (!signing || !signatureCtx || stage.classList.contains("opening")) return;
+    event.preventDefault();
+    const point = signaturePoint(event);
+    const dx = point.x - signatureLastPoint.x;
+    const dy = point.y - signatureLastPoint.y;
+    signatureDistance += Math.hypot(dx, dy);
+    signatureCtx.lineTo(point.x, point.y);
+    signatureCtx.stroke();
+    signatureLastPoint = point;
+
+    if (signatureDistance > 120 && !signatureCard.classList.contains("signed")) {
+        signatureCard.classList.add("signed");
+        if (signatureHint) signatureHint.textContent = "ลงชื่อ";
+    }
+}
+
+function endSignature(event) {
+    if (!signing) return;
+    signing = false;
+    if (signatureCanvas.hasPointerCapture(event.pointerId)) {
+        signatureCanvas.releasePointerCapture(event.pointerId);
+    }
+}
+
+function clearSignaturePad(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    if (!signatureCtx || stage.classList.contains("opening")) return;
+    signing = false;
+    signatureDistance = 0;
+    signatureLastPoint = null;
+    signatureCard.classList.remove("signed");
+    if (signatureHint) signatureHint.textContent = "ลงชื่อ";
+    signatureCtx.save();
+    signatureCtx.setTransform(1, 0, 0, 1, 0, 0);
+    signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+    signatureCtx.restore();
+    signatureCtx.beginPath();
+}
+
+function setupSignaturePad() {
+    if (!signatureCanvas) return;
+    resizeSignatureCanvas();
+    signatureCanvas.addEventListener("pointerdown", beginSignature);
+    signatureCanvas.addEventListener("pointermove", drawSignature);
+    signatureCanvas.addEventListener("pointerup", endSignature);
+    signatureCanvas.addEventListener("pointercancel", endSignature);
+    if (clearSignature) clearSignature.addEventListener("click", clearSignaturePad);
+}
+
+function confettiBurst(origin = giftTrigger) {
+    const rect = origin.getBoundingClientRect();
+    const originX = rect.left + rect.width / 2;
+    const originY = rect.top + rect.height / 2;
+    const wave = document.createElement("span");
+    wave.className = "shockwave";
+    wave.style.setProperty("--x", `${originX}px`);
+    wave.style.setProperty("--y", `${originY}px`);
+    document.body.appendChild(wave);
+    setTimeout(() => wave.remove(), 950);
+
+    for (let i = 0; i < 150; i += 1) {
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 110 + Math.random() * 330;
+        const piece = document.createElement("span");
+        piece.className = "confetti";
+        piece.style.setProperty("--x", `${originX}px`);
+        piece.style.setProperty("--y", `${originY}px`);
+        piece.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+        piece.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
+        piece.style.setProperty("--rot", `${Math.random() * 720 - 360}deg`);
+        piece.style.setProperty("--color", colors[i % colors.length]);
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 1200);
+    }
+}
+
+function heartBurst() {
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    for (let i = 0; i < 36; i += 1) {
+        const angle = (Math.PI * 2 * i) / 36;
+        const distance = 120 + Math.random() * 260;
+        const bit = document.createElement("span");
+        bit.className = "love-bit";
+        bit.textContent = hearts[i % hearts.length];
+        bit.style.setProperty("--x", `${cx}px`);
+        bit.style.setProperty("--y", `${cy}px`);
+        bit.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+        bit.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
+        bit.style.setProperty("--rot", `${Math.random() * 420 - 210}deg`);
+        bit.style.setProperty("--size", `${18 + Math.random() * 22}px`);
+        bit.style.setProperty("--duration", `${850 + Math.random() * 700}ms`);
+        bit.style.setProperty("--color", colors[i % colors.length]);
+        heartVortex.appendChild(bit);
+        setTimeout(() => bit.remove(), 1700);
+    }
+}
+
+function pointerSpark(event) {
+    const now = performance.now();
+    if (now - lastSparkAt < 36) return;
+    lastSparkAt = now;
+    for (let i = 0; i < 4; i += 1) {
+        const spark = document.createElement("span");
+        spark.className = "pointer-spark";
+        spark.style.setProperty("--x", `${event.clientX}px`);
+        spark.style.setProperty("--y", `${event.clientY}px`);
+        spark.style.setProperty("--dx", `${Math.random() * 76 - 38}px`);
+        spark.style.setProperty("--dy", `${Math.random() * 76 - 38}px`);
+        spark.style.setProperty("--size", `${4 + Math.random() * 7}px`);
+        spark.style.setProperty("--color", colors[Math.floor(Math.random() * colors.length)]);
+        sparkTrailLayer.appendChild(spark);
+        setTimeout(() => spark.remove(), 700);
+    }
+}
+
+function startCountdown(origin = giftTrigger) {
+    const steps = [
+        ["3", ""],
+        ["2", ""],
+        ["1", ""]
+    ];
+    countdown.classList.add("show");
+    steps.forEach((step, index) => {
+        setTimeout(() => {
+            countNum.textContent = step[0];
+            countText.textContent = step[1];
+            confettiBurst(origin);
+            heartBurst();
+        }, index * 1000);
+    });
+    setTimeout(() => {
+        window.location.assign("./NN2.html");
+    }, 2800);
+}
+
+function startSurprise(origin = giftTrigger) {
+    if (stage.classList.contains("opening")) return;
+    chime();
+    stage.classList.add("opening");
+    if (button) button.textContent = "เปิดแล้ว";
+    confettiBurst(origin);
+    heartBurst();
+    setTimeout(() => startCountdown(origin), 620);
+}
+
+if (button) {
+    button.addEventListener("click", () => startSurprise(button));
+}
+giftTrigger.addEventListener("click", () => startSurprise(giftTrigger));
+giftTrigger.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        startSurprise(giftTrigger);
+    }
+});
+
+window.addEventListener("load", () => {
+    document.body.classList.add("loaded");
+});
+
+window.addEventListener("resize", () => {
+    resizeCanvas();
+    resizeSignatureCanvas();
+    seedStars();
+});
+
+window.addEventListener("pointermove", pointerSpark);
+
+resizeCanvas();
+setupSignaturePad();
+seedStars();
+drawStars();
+</script>
+</body>
+</html>
