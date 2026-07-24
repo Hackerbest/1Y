@@ -1,8 +1,0 @@
-@font-face {
-    font-family: "FC_Issara_Rounded";
-    src: url("FC_Issara_Rounded.woff2") format("woff2"),
-         url("FC_Issara_Rounded.woff") format("woff"),
-         url("fFC_Issara_Rounded.ttf") format("truetype");
-    font-weight: normal;
-    font-style: normal;
-}
