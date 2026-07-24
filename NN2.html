@@ -4,15 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>365 วันที่มีเธอ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-@font-face {
-    font-family: "FC Issara Rounded";
-    src: url("FC_Issara_Rounded.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-}
-
 :root {
     --night: #070508;
     --deep: #120b13;
@@ -38,7 +34,7 @@ body {
     color: var(--ink);
     background:
         linear-gradient(180deg, #070508 0%, #120b13 42%, #070508 100%);
-    font-family: "FC Issara Rounded", "Leelawadee UI", Tahoma, sans-serif;
+    font-family: "Mali", "Leelawadee UI", Tahoma, sans-serif;
     letter-spacing: 0;
     overflow-x: hidden;
 }
@@ -1538,6 +1534,7 @@ section.section-fx.in-view {
     }
 }
 </style>
+<script src="./site-protection.js" defer></script>
 </head>
 
 <body>
@@ -1563,7 +1560,7 @@ section.section-fx.in-view {
 </div>
 
 <header class="topbar">
-    <a class="brand" href="./index.html" aria-label="กลับไปหน้าเปิดของขวัญ">1 Year Anniversary</a>
+    <a class="brand" href="./index.html" target="_top" aria-label="กลับไปหน้าเปิดของขวัญ">1 Year Anniversary</a>
     <button class="music-toggle" id="musicToggle" type="button" aria-label="Toggle background music" aria-pressed="false">MUSIC: PLAY</button>
 
 </header>
@@ -1713,7 +1710,16 @@ section.section-fx.in-view {
 </div>
 
 <script>
-const backgroundMusic = document.getElementById("backgroundMusic");
+const localBackgroundMusic = document.getElementById("backgroundMusic");
+let backgroundMusic = localBackgroundMusic;
+try {
+    const inheritedMusic = window.parent !== window
+        ? window.parent.document.getElementById("transitionMusic")
+        : null;
+    if (inheritedMusic) backgroundMusic = inheritedMusic;
+} catch (error) {
+    // Local file origins can block frame access; the parent music keeps playing.
+}
 const musicToggle = document.getElementById("musicToggle");
 let resumeMusicAfterVideo = false;
 
@@ -2054,7 +2060,7 @@ function setupScratch() {
         scratch.fill();
     }
     scratch.fillStyle = "#1b1014";
-    scratch.font = "26px FC Issara Rounded, Tahoma, sans-serif";
+    scratch.font = "26px Mali, Tahoma, sans-serif";
     scratch.textAlign = "center";
     scratch.fillText("", rect.width / 2, rect.height / 2);
     scratchReady = true;

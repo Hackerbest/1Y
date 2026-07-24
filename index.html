@@ -4,15 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>เช็นรับพัสดุ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-@font-face {
-    font-family: "FC Issara Rounded";
-    src: url("FC_Issara_Rounded.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-}
-
 :root {
     --night: #070508;
     --ink: #fff9ef;
@@ -37,7 +33,7 @@ body {
     overflow: hidden;
     color: var(--ink);
     background: var(--night);
-    font-family: "FC Issara Rounded", "Leelawadee UI", Tahoma, sans-serif;
+    font-family: "Mali", "Leelawadee UI", Tahoma, sans-serif;
     letter-spacing: 0;
 }
 
@@ -852,10 +848,34 @@ h1 {
         transition-duration: 1ms !important;
     }
 }
+
+.surprise-page-frame {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: var(--night);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 420ms ease;
+}
+
+.surprise-page-frame.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
 </style>
+<script src="./site-protection.js" defer></script>
 </head>
 
 <body>
+<audio id="transitionMusic" loop preload="auto">
+    <source src="NN1Y.mp3" type="audio/mpeg">
+</audio>
 <main class="stage" id="stage">
     <canvas id="sparkField" aria-hidden="true"></canvas>
     <div class="aurora-layer" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -927,6 +947,7 @@ const heartVortex = document.getElementById("heartVortex");
 const sparkTrailLayer = document.getElementById("sparkTrailLayer");
 const canvas = document.getElementById("sparkField");
 const ctx = canvas.getContext("2d");
+const transitionMusic = document.getElementById("transitionMusic");
 const colors = ["#fff9ef", "#f6c76f", "#ff6f95", "#77e7d7"];
 const hearts = ["รัก", "365", "♥", "เรา", "💖"];
 let stars = [];
@@ -936,6 +957,27 @@ let signatureCtx = null;
 let signing = false;
 let signatureDistance = 0;
 let signatureLastPoint = null;
+let surpriseFrame = null;
+
+transitionMusic.volume = 0.34;
+
+function prepareSurprisePage() {
+    if (surpriseFrame) return surpriseFrame;
+    surpriseFrame = document.createElement("iframe");
+    surpriseFrame.className = "surprise-page-frame";
+    surpriseFrame.src = "./NN2.html?fromGift=1";
+    surpriseFrame.title = "Anniversary surprise";
+    surpriseFrame.allow = "autoplay; fullscreen";
+    document.body.appendChild(surpriseFrame);
+    return surpriseFrame;
+}
+
+function openSurprisePage() {
+    const frame = prepareSurprisePage();
+    countdown.classList.remove("show");
+    frame.classList.add("show");
+    frame.focus();
+}
 
 function resizeCanvas() {
     canvas.width = window.innerWidth * window.devicePixelRatio;
@@ -1165,12 +1207,15 @@ function startCountdown(origin = giftTrigger) {
         }, index * 1000);
     });
     setTimeout(() => {
-        window.location.assign("./NN2.html");
+        openSurprisePage();
     }, 2800);
 }
 
 function startSurprise(origin = giftTrigger) {
     if (stage.classList.contains("opening")) return;
+    const musicRequest = transitionMusic.play();
+    if (musicRequest) musicRequest.catch(() => {});
+    prepareSurprisePage();
     chime();
     stage.classList.add("opening");
     if (button) button.textContent = "เปิดแล้ว";
