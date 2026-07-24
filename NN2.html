@@ -1,0 +1,2421 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>365 วันที่มีเธอ</title>
+
+<style>
+@font-face {
+    font-family: "FC Issara Rounded";
+    src: url("FC_Issara_Rounded.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+:root {
+    --night: #070508;
+    --deep: #120b13;
+    --ink: #fff9ef;
+    --muted: rgba(255, 249, 239, 0.72);
+    --line: rgba(255, 249, 239, 0.18);
+    --gold: #f6c76f;
+    --rose: #ff6f95;
+    --aqua: #77e7d7;
+    --violet: #9c86ff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    color: var(--ink);
+    background:
+        linear-gradient(180deg, #070508 0%, #120b13 42%, #070508 100%);
+    font-family: "FC Issara Rounded", "Leelawadee UI", Tahoma, sans-serif;
+    letter-spacing: 0;
+    overflow-x: hidden;
+}
+
+body.locked {
+    overflow: hidden;
+}
+
+body.screen-shake {
+    animation: screenShake 480ms cubic-bezier(.36, .07, .19, .97);
+}
+
+canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+#starCanvas {
+    z-index: -4;
+}
+
+#heartCanvas {
+    z-index: 1;
+}
+
+#fxCanvas {
+    z-index: 30;
+}
+
+.scroll-progress {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 40;
+    width: var(--progress, 0%);
+    height: 4px;
+    background: linear-gradient(90deg, var(--rose), var(--gold), var(--aqua), var(--violet));
+    box-shadow: 0 0 22px rgba(246, 199, 111, 0.72);
+    pointer-events: none;
+}
+
+.aurora-ribbons,
+.meteor-layer,
+.heart-rain,
+.cursor-light,
+.memory-flash {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+}
+
+.aurora-ribbons {
+    z-index: -2;
+    overflow: hidden;
+    mix-blend-mode: screen;
+}
+
+.aurora-ribbons span {
+    position: absolute;
+    left: -18vw;
+    width: 138vw;
+    height: 18vh;
+    border-radius: 50%;
+    background: linear-gradient(90deg, transparent, rgba(255, 111, 149, 0.36), rgba(119, 231, 215, 0.28), rgba(156, 134, 255, 0.22), transparent);
+    filter: blur(18px);
+    opacity: 0.58;
+    animation: ribbonMove 9s ease-in-out infinite alternate;
+}
+
+.aurora-ribbons span:nth-child(1) {
+    top: 14vh;
+    transform: rotate(-12deg);
+}
+
+.aurora-ribbons span:nth-child(2) {
+    top: 46vh;
+    transform: rotate(8deg);
+    animation-delay: -3s;
+}
+
+.aurora-ribbons span:nth-child(3) {
+    top: 72vh;
+    transform: rotate(-5deg);
+    animation-delay: -5s;
+}
+
+.meteor-layer {
+    z-index: 4;
+    overflow: hidden;
+}
+
+.meteor {
+    position: fixed;
+    left: var(--x);
+    top: var(--y);
+    width: 2px;
+    height: var(--len);
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255, 249, 239, 0), var(--color));
+    box-shadow: 0 0 16px var(--color);
+    transform: rotate(52deg);
+    animation: meteorFall var(--duration) linear forwards;
+}
+
+.heart-rain {
+    z-index: 5;
+    overflow: hidden;
+}
+
+.falling-heart {
+    position: fixed;
+    left: var(--x);
+    top: -40px;
+    color: var(--color);
+    font-size: var(--size);
+    text-shadow: 0 0 18px currentColor;
+    animation: heartFall var(--duration) linear forwards;
+}
+
+.cursor-light {
+    z-index: 6;
+    background: radial-gradient(circle at var(--mx, 50%) var(--my, 35%), rgba(255, 249, 239, 0.14), transparent 18rem);
+    mix-blend-mode: screen;
+}
+
+.click-spark {
+    position: fixed;
+    left: var(--x);
+    top: var(--y);
+    z-index: 31;
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+    background: var(--color);
+    box-shadow: 0 0 18px var(--color);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    animation: clickSpark 700ms ease-out forwards;
+}
+
+.cannon-piece {
+    position: fixed;
+    left: var(--x);
+    bottom: -24px;
+    z-index: 31;
+    width: 10px;
+    height: 18px;
+    border-radius: 2px;
+    background: var(--color);
+    box-shadow: 0 0 14px var(--color);
+    pointer-events: none;
+    animation: cannonFly var(--duration) cubic-bezier(.16, .84, .28, 1) forwards;
+}
+
+.memory-flash {
+    z-index: 28;
+    opacity: 0;
+    background: radial-gradient(circle at center, rgba(255, 249, 239, 0.72), rgba(246, 199, 111, 0.24), transparent 54%);
+}
+
+.memory-flash.show {
+    animation: memoryFlash 650ms ease-out forwards;
+}
+
+.grain {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0.13;
+    background-image:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 3px),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 4px);
+    mix-blend-mode: screen;
+}
+
+.intro-curtain {
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    display: grid;
+    place-items: center;
+    background: #070508;
+    pointer-events: none;
+    animation: curtainGone 1400ms ease 4100ms forwards;
+}
+
+.intro-curtain::before,
+.intro-curtain::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    background:
+        linear-gradient(90deg, rgba(7, 5, 8, 1), rgba(45, 16, 31, 0.96)),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 38px);
+    animation: openCurtain 3200ms cubic-bezier(.65, 0, .25, 1) 900ms forwards;
+}
+
+.intro-curtain::before {
+    left: 0;
+}
+
+.intro-curtain::after {
+    right: 0;
+    transform: scaleX(-1);
+}
+
+.intro-mark {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+}
+
+.intro-mark strong {
+    display: block;
+    color: var(--gold);
+    font-size: 82px;
+    line-height: 0.9;
+    text-shadow: 0 0 34px rgba(246, 199, 111, 0.58);
+}
+
+.intro-mark span {
+    display: block;
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 24px;
+}
+
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 12;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    min-height: 66px;
+    padding: 12px 32px;
+    background: linear-gradient(180deg, rgba(7, 5, 8, 0.84), rgba(7, 5, 8, 0));
+}
+
+.music-toggle {
+    min-width: 94px;
+    padding: 9px 14px;
+    border: 1px solid rgba(246, 199, 111, 0.42);
+    border-radius: 999px;
+    color: var(--muted);
+    background: rgba(7, 5, 8, 0.64);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    transition: color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.music-toggle:hover,
+.music-toggle.is-playing {
+    color: var(--cream);
+    border-color: rgba(246, 199, 111, 0.82);
+    box-shadow: 0 0 22px rgba(246, 199, 111, 0.18);
+}
+
+.music-toggle:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+}
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    color: rgba(255, 249, 239, 0.88);
+    font-size: 18px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.brand::before {
+    content: "";
+    width: 30px;
+    height: 1px;
+    background: var(--gold);
+    box-shadow: 0 0 18px var(--gold);
+}
+
+.nav {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.nav a,
+.nav button,
+.tiny-button {
+    min-height: 38px;
+    padding: 7px 14px;
+    border: 1px solid rgba(255, 249, 239, 0.24);
+    border-radius: 999px;
+    background: rgba(7, 5, 8, 0.42);
+    color: var(--ink);
+    font: inherit;
+    font-size: 16px;
+    text-decoration: none;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    transition: transform 160ms ease, filter 160ms ease;
+}
+
+.nav a:hover,
+.nav a:focus-visible,
+.nav button:hover,
+.nav button:focus-visible,
+.tiny-button:hover,
+.tiny-button:focus-visible,
+.primary-button:hover,
+.primary-button:focus-visible,
+.ghost-button:hover,
+.ghost-button:focus-visible {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+    outline: none;
+}
+
+.hero {
+    position: relative;
+    min-height: 88svh;
+    display: grid;
+    align-items: start;
+    padding: 140px 32px 52px;
+    isolation: isolate;
+}
+
+.hero-memory-universe {
+    position: absolute;
+    left: 50%;
+    top: 64%;
+    z-index: 4;
+    width: min(92vw, 1500px);
+    height: 430px;
+    transform: translate(-50%, -50%);
+    perspective: 1100px;
+    pointer-events: auto;
+    touch-action: pan-y;
+    user-select: none;
+    cursor: grab;
+}
+.hero-memory-universe.is-dragging { cursor: grabbing; }
+.hero-memory-universe::before,
+.hero-memory-universe::after {
+    content: "";
+    position: absolute;
+    border: 1px solid rgba(246, 199, 111, 0.2);
+    border-radius: 50%;
+    box-shadow: inset 0 0 60px rgba(119, 231, 215, 0.035), 0 0 35px rgba(246, 199, 111, 0.04);
+}
+.hero-memory-universe::before { inset: 14% 3%; }
+.hero-memory-universe::after { inset: 26% 15%; border-color: rgba(119, 231, 215, 0.11); }
+.memory-planet {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: clamp(210px, 14vw, 300px);
+    height: clamp(210px, 14vw, 300px);
+    aspect-ratio: 1;
+    padding: 0;
+    border: 0;
+    border-radius: 18px;
+    background: transparent;
+    cursor: pointer;
+    pointer-events: auto;
+    opacity: 0;
+    contain: layout paint;
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+    will-change: transform, opacity;
+}
+.memory-planet.planet-tall {
+    width: clamp(210px, 14vw, 300px);
+    height: clamp(210px, 14vw, 300px);
+}
+.planet-card {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: hidden;
+    border: 2px solid rgba(255, 249, 239, 0.74);
+    border-radius: 18px;
+    background: rgba(7, 5, 8, 0.92);
+    box-shadow: 0 0 0 6px rgba(246, 199, 111, 0.06), 0 18px 40px rgba(0, 0, 0, 0.5), 0 0 28px rgba(246, 199, 111, 0.2);
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+.planet-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(125deg, rgba(255,255,255,0.24), transparent 32%, transparent 70%, rgba(246,199,111,0.12));
+    pointer-events: none;
+}
+.planet-card img,
+.planet-card video { width: 100%; height: 100%; display: block; object-fit: cover; }
+.memory-planet:hover .planet-card,
+.memory-planet:focus-visible .planet-card {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 8px rgba(246, 199, 111, 0.12), 0 22px 48px rgba(0, 0, 0, 0.58), 0 0 42px rgba(246, 199, 111, 0.42);
+    transform: scale(1.1);
+}
+.memory-planet:focus-visible { outline: none; }
+.planet-play {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 2;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255, 249, 239, 0.78);
+    border-radius: 50%;
+    color: #070508;
+    background: rgba(246, 199, 111, 0.94);
+    box-shadow: 0 0 26px rgba(246, 199, 111, 0.58);
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+}
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -3;
+    background:
+        linear-gradient(90deg, rgba(7, 5, 8, 0.94), rgba(7, 5, 8, 0.38) 52%, rgba(7, 5, 8, 0.86)),
+        linear-gradient(180deg, rgba(7, 5, 8, 0.12), rgba(7, 5, 8, 0.42) 64%, #070508),
+        url("IMG_5795.jpg") center 44% / cover no-repeat;
+}
+
+.hero-inner,
+.wrap {
+    width: min(1120px, 100%);
+    margin: 0 auto;
+}
+
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 5px 13px;
+    border: 1px solid rgba(255, 249, 239, 0.28);
+    border-radius: 999px;
+    background: rgba(7, 5, 8, 0.32);
+    color: rgba(255, 249, 239, 0.84);
+    font-size: 17px;
+    backdrop-filter: blur(10px);
+}
+
+h1 {
+    max-width: 830px;
+    margin: 22px 0 18px;
+    font-size: 88px;
+    line-height: 0.94;
+    font-weight: 700;
+    text-shadow: 0 28px 80px rgba(0, 0, 0, 0.74);
+}
+
+.hero-copy {
+    max-width: 630px;
+    margin: 0 0 30px;
+    color: var(--muted);
+    font-size: 24px;
+    line-height: 1.5;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.primary-button,
+.ghost-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 54px;
+    padding: 12px 25px;
+    border-radius: 999px;
+    font: inherit;
+    font-size: 20px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 160ms ease, filter 160ms ease;
+}
+
+.primary-button {
+    border: 0;
+    color: #1b1014;
+    background: linear-gradient(135deg, #fff9ef, var(--gold) 56%, var(--aqua));
+    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.36);
+}
+
+.ghost-button {
+    border: 1px solid rgba(255, 249, 239, 0.26);
+    color: var(--ink);
+    background: rgba(255, 249, 239, 0.1);
+    backdrop-filter: blur(12px);
+}
+
+section {
+    position: relative;
+    padding: 86px 32px;
+}
+
+section.section-fx {
+    opacity: 0;
+    transform: translateY(34px) scale(0.985);
+    filter: blur(5px);
+    transition:
+        opacity 700ms ease,
+        transform 700ms ease,
+        filter 700ms ease;
+}
+
+section.section-fx.in-view {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+}
+
+.section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 28px;
+    margin-bottom: 30px;
+}
+
+.section-head h2 {
+    margin: 0;
+    max-width: 640px;
+    font-size: 46px;
+    line-height: 1.08;
+}
+
+.section-head p {
+    max-width: 440px;
+    margin: 0;
+    color: var(--muted);
+    font-size: 20px;
+    line-height: 1.45;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px;
+    border: 1px solid var(--line);
+    background: var(--line);
+}
+
+.stat {
+    position: relative;
+    min-height: 158px;
+    padding: 24px;
+    background:
+        linear-gradient(180deg, rgba(255, 249, 239, 0.08), rgba(255, 249, 239, 0.02)),
+        rgba(7, 5, 8, 0.72);
+    overflow: hidden;
+}
+
+.stat::after {
+    content: "";
+    position: absolute;
+    inset: -80% -30%;
+    background: linear-gradient(105deg, transparent 34%, rgba(255, 249, 239, 0.18), transparent 66%);
+    transform: translateX(-70%) rotate(12deg);
+    animation: cardShimmer 5.8s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.stat strong {
+    display: block;
+    color: var(--gold);
+    font-size: 48px;
+    line-height: 1;
+}
+
+.stat span {
+    display: block;
+    margin-top: 13px;
+    color: var(--muted);
+    font-size: 19px;
+    line-height: 1.35;
+}
+
+.orbit-wrap {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: 38px;
+    align-items: center;
+}
+
+.orbit {
+    position: relative;
+    aspect-ratio: 1;
+    min-height: 420px;
+}
+
+.orbit-ring {
+    position: absolute;
+    inset: 8%;
+    border: 1px solid rgba(255, 249, 239, 0.24);
+    border-radius: 50%;
+    animation: orbitSpin 22s linear infinite;
+}
+
+.orbit-ring:nth-child(2) {
+    inset: 19%;
+    animation-duration: 16s;
+    animation-direction: reverse;
+}
+
+.orbit-ring:nth-child(3) {
+    inset: 31%;
+    animation-duration: 12s;
+}
+
+.orbit-ring span {
+    position: absolute;
+    left: 50%;
+    top: -6px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 20px var(--gold);
+}
+
+.orbit-ring:nth-child(2) span {
+    background: var(--rose);
+    box-shadow: 0 0 20px var(--rose);
+}
+
+.orbit-ring:nth-child(3) span {
+    background: var(--aqua);
+    box-shadow: 0 0 20px var(--aqua);
+}
+
+.orbit-core {
+    position: absolute;
+    inset: 50%;
+    width: 220px;
+    height: 220px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255, 249, 239, 0.24);
+    border-radius: 50%;
+    background:
+        linear-gradient(135deg, rgba(246, 199, 111, 0.2), rgba(255, 111, 149, 0.12)),
+        rgba(7, 5, 8, 0.78);
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.orbit-core strong {
+    display: block;
+    color: var(--gold);
+    font-size: 68px;
+    line-height: 0.9;
+}
+
+.orbit-core span {
+    display: block;
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 19px;
+}
+
+.orbit-copy {
+    color: var(--muted);
+    font-size: 24px;
+    line-height: 1.55;
+}
+
+.film {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.photo-frame {
+    position: relative;
+    min-height: 0;
+    height: clamp(220px, 20vw, 260px);
+    padding: 0;
+    border: 1px solid rgba(255, 249, 239, 0.16);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #100b12;
+    color: var(--ink);
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.photo-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+        linear-gradient(110deg, transparent 32%, rgba(255, 249, 239, 0.2), transparent 56%),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 7px);
+    transform: translateX(-120%);
+    animation: photoScan 4.8s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.photo-frame:hover,
+.photo-frame:focus-visible {
+    box-shadow:
+        0 24px 64px rgba(0, 0, 0, 0.42),
+        0 0 38px rgba(246, 199, 111, 0.18);
+}
+
+.photo-frame:first-child {
+    grid-row: auto;
+    min-height: 0;
+}
+
+.photo-frame img,
+.photo-frame video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 700ms ease, filter 700ms ease;
+}
+
+.photo-frame:hover img,
+.photo-frame:focus-visible img,
+.photo-frame:hover video,
+.photo-frame:focus-visible video {
+    transform: scale(1.05);
+    filter: contrast(1.06) saturate(1.08);
+}
+
+.photo-frame:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+}
+
+.caption {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 54px 18px 17px;
+    background: linear-gradient(180deg, transparent, rgba(7, 5, 8, 0.86));
+    text-align: left;
+}
+
+.caption strong {
+    display: block;
+    font-size: 22px;
+    line-height: 1.2;
+}
+
+.caption span {
+    display: block;
+    margin-top: 5px;
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 1.35;
+}
+
+.letter-box {
+    display: block;
+    padding: 34px;
+    border: 1px solid rgba(255, 249, 239, 0.18);
+    border-radius: 8px;
+    background:
+        linear-gradient(135deg, rgba(246, 199, 111, 0.13), transparent 36%),
+        rgba(7, 5, 8, 0.68);
+    backdrop-filter: blur(14px);
+}
+
+.letter-box h2 {
+    margin: 0;
+    font-size: 46px;
+    line-height: 1.08;
+}
+
+.letter-box p {
+    margin: 12px 0 0;
+    color: var(--muted);
+    font-size: 20px;
+    line-height: 1.45;
+}
+
+.typed {
+    min-height: 308px;
+    width: min(820px, 100%);
+    margin: 0 auto;
+    padding: 60px 0;
+    color: rgba(255, 249, 239, 0.9);
+    font-size: 24px;
+    line-height: 1.58;
+    text-align: center;
+    white-space: pre-line;
+}
+
+.caret {
+    display: inline-block;
+    width: 8px;
+    height: 1em;
+    margin-left: 3px;
+    vertical-align: -2px;
+    background: var(--gold);
+    animation: blink 900ms steps(2, start) infinite;
+}
+
+.scratch-area {
+    position: relative;
+    min-height: 290px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255, 249, 239, 0.18);
+    border-radius: 8px;
+    overflow: hidden;
+    background:
+        linear-gradient(120deg, rgba(255, 111, 149, 0.16), rgba(119, 231, 215, 0.1)),
+        rgba(7, 5, 8, 0.72);
+}
+
+.scratch-area::before {
+    content: "";
+    position: absolute;
+    inset: -24%;
+    z-index: 1;
+    background:
+        radial-gradient(circle at 20% 30%, rgba(255, 111, 149, 0.18), transparent 28%),
+        radial-gradient(circle at 76% 60%, rgba(119, 231, 215, 0.16), transparent 32%),
+        conic-gradient(from 90deg, transparent, rgba(246, 199, 111, 0.12), transparent, rgba(255, 111, 149, 0.08), transparent);
+    filter: blur(12px);
+    opacity: 0;
+    animation: scratchAura 8s linear infinite;
+    transition: opacity 220ms ease;
+    pointer-events: none;
+}
+
+.scratch-area.scratching::before,
+.scratch-area.revealed::before {
+    opacity: 1;
+}
+
+.secret-message {
+    position: relative;
+    z-index: 2;
+    max-width: 760px;
+    padding: 32px;
+    text-align: center;
+}
+
+.secret-message h2 {
+    margin: 0 0 14px;
+    font-size: 48px;
+    line-height: 1.1;
+}
+
+.secret-message p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 24px;
+    line-height: 1.5;
+}
+
+.secret-message.secret-video-message {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    background: #070508;
+}
+
+.secret-video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+#scratchCanvas {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+    pointer-events: auto;
+    touch-action: none;
+}
+
+.scratch-effects {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.scratch-spark {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+    background: var(--color);
+    box-shadow: 0 0 16px var(--color);
+    transform: translate(-50%, -50%);
+    animation: scratchSpark 760ms ease-out forwards;
+}
+
+.scratch-ripple {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: 28px;
+    height: 28px;
+    border: 1px solid rgba(255, 249, 239, 0.58);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: scratchRipple 640ms ease-out forwards;
+}
+
+.scratch-meter {
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    bottom: 18px;
+    z-index: 5;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(7, 5, 8, 0.28);
+    overflow: hidden;
+    pointer-events: none;
+    box-shadow: 0 0 0 1px rgba(255, 249, 239, 0.16) inset;
+}
+
+.scratch-meter span {
+    display: block;
+    width: var(--scratch-progress, 0%);
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--rose), var(--gold), var(--aqua));
+    box-shadow: 0 0 18px rgba(246, 199, 111, 0.72);
+    transition: width 160ms ease;
+}
+
+.scratch-area.revealed #scratchCanvas {
+    opacity: 0;
+    transition: opacity 500ms ease;
+    pointer-events: none;
+}
+
+.scratch-area.revealed .scratch-meter {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 380ms ease, transform 380ms ease;
+}
+
+.scratch-area.revealed .secret-message {
+    animation: secretRevealPop 850ms cubic-bezier(.18, .89, .32, 1.28);
+}
+
+.finale {
+    min-height: 68svh;
+    display: grid;
+    place-items: center;
+    text-align: center;
+}
+
+.finale h2 {
+    margin: 0 0 16px;
+    font-size: 56px;
+    line-height: 1.08;
+}
+
+.finale p {
+    max-width: 670px;
+    margin: 0 auto 28px;
+    color: var(--muted);
+    font-size: 23px;
+    line-height: 1.48;
+}
+
+.hold-button {
+    --hold: 100%;
+    position: relative;
+    min-width: 290px;
+    min-height: 60px;
+    padding: 13px 28px;
+    border: 0;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255, 249, 239, 0.14);
+    color: var(--ink);
+    font: inherit;
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 22px 48px rgba(0, 0, 0, 0.36);
+}
+
+.hold-button::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: var(--hold);
+    background: linear-gradient(90deg, var(--rose), var(--gold), var(--aqua));
+    transition: width 80ms linear;
+}
+
+.hold-button span {
+    position: relative;
+    z-index: 1;
+}
+
+.final-overlay,
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 24;
+    display: none;
+    place-items: center;
+    padding: 24px;
+    background: rgba(7, 5, 8, 0.86);
+    backdrop-filter: blur(16px);
+}
+
+.final-overlay.show,
+.lightbox.show {
+    display: grid;
+}
+
+.final-card {
+    width: min(760px, 100%);
+    padding: 36px;
+    border: 1px solid rgba(255, 249, 239, 0.24);
+    border-radius: 8px;
+    background:
+        linear-gradient(135deg, rgba(246, 199, 111, 0.16), rgba(255, 111, 149, 0.08)),
+        rgba(7, 5, 8, 0.82);
+    text-align: center;
+    box-shadow: 0 34px 100px rgba(0, 0, 0, 0.58);
+}
+
+.final-card h2 {
+    margin: 0 0 15px;
+    color: var(--gold);
+    font-size: 64px;
+    line-height: 1.04;
+}
+
+.final-card p {
+    margin: 0 auto 24px;
+    max-width: 610px;
+    color: rgba(255, 249, 239, 0.84);
+    font-size: 25px;
+    line-height: 1.5;
+}
+
+.video-countdown {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: none;
+    place-items: center;
+    margin: 0;
+    padding: 24px;
+    background:
+        radial-gradient(circle at 50% 46%, rgba(246, 199, 111, 0.22), transparent 34%),
+        radial-gradient(circle at 50% 46%, rgba(255, 111, 149, 0.16), transparent 48%),
+        rgba(7, 5, 8, 0.88);
+    color: rgba(255, 249, 239, 0.86);
+    text-align: center;
+    pointer-events: none;
+}
+
+.video-countdown.show {
+    display: grid;
+}
+
+.video-count {
+    min-width: 240px;
+    min-height: 240px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold), var(--rose));
+    color: #1b1014;
+    font-size: 176px;
+    font-weight: 700;
+    line-height: 0.9;
+    box-shadow:
+        0 0 54px rgba(246, 199, 111, 0.55),
+        0 0 120px rgba(255, 111, 149, 0.3);
+    animation: countdownBeat 1000ms ease-in-out infinite;
+}
+
+.video-countdown > span:not(.video-count) {
+    display: block;
+    max-width: 720px;
+    margin-top: 20px;
+    color: rgba(255, 249, 239, 0.9);
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 1.18;
+    text-shadow: 0 18px 48px rgba(0, 0, 0, 0.62);
+}
+
+.video-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 34;
+    display: none;
+    place-items: center;
+    padding: 24px;
+    background: rgba(7, 5, 8, 0.92);
+    backdrop-filter: blur(18px);
+}
+
+.video-overlay.show {
+    display: grid;
+}
+
+.video-card {
+    width: min(980px, 100%);
+    display: grid;
+    gap: 14px;
+}
+
+.video-card video {
+    width: 100%;
+    max-height: 72svh;
+    border: 1px solid rgba(255, 249, 239, 0.22);
+    border-radius: 8px;
+    background: #000;
+    box-shadow: 0 34px 100px rgba(0, 0, 0, 0.64);
+}
+
+.video-note {
+    color: rgba(255, 249, 239, 0.72);
+    font-size: 18px;
+    text-align: center;
+}
+
+.video-actions {
+    display: flex;
+    justify-content: center;
+}
+
+.close-button {
+    min-height: 48px;
+    padding: 10px 22px;
+    border: 1px solid rgba(255, 249, 239, 0.26);
+    border-radius: 999px;
+    background: rgba(255, 249, 239, 0.1);
+    color: var(--ink);
+    font: inherit;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.lightbox-content {
+    width: min(880px, 100%);
+    max-height: 88svh;
+    display: grid;
+    gap: 14px;
+}
+
+.lightbox img {
+    width: 100%;
+    max-height: 72svh;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #000;
+}
+
+.lightbox-caption {
+    color: rgba(255, 249, 239, 0.86);
+    font-size: 20px;
+    line-height: 1.35;
+    text-align: center;
+}
+
+@keyframes openCurtain {
+    to { transform: translateX(-102%); }
+}
+
+.intro-curtain::after {
+    animation-name: openCurtainRight;
+}
+
+@keyframes openCurtainRight {
+    to { transform: translateX(102%) scaleX(-1); }
+}
+
+@keyframes curtainGone {
+    to {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
+@keyframes orbitSpin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+@keyframes ribbonMove {
+    to { transform: translateX(14vw) rotate(10deg) scaleY(1.22); }
+}
+
+@keyframes meteorFall {
+    to {
+        transform: translate(36vw, 68vh) rotate(52deg);
+        opacity: 0;
+    }
+}
+
+@keyframes heartFall {
+    to {
+        transform: translate(var(--drift), calc(100vh + 80px)) rotate(var(--spin));
+        opacity: 0;
+    }
+}
+
+@keyframes memoryFlash {
+    0% { opacity: 0; transform: scale(0.88); }
+    30% { opacity: 1; }
+    100% { opacity: 0; transform: scale(1.15); }
+}
+
+@keyframes clickSpark {
+    to {
+        transform: translate(calc(var(--dx) - 50%), calc(var(--dy) - 50%)) scale(0.24);
+        opacity: 0;
+    }
+}
+
+@keyframes cannonFly {
+    to {
+        transform: translate(var(--dx), var(--dy)) rotate(var(--rot));
+        opacity: 0;
+    }
+}
+
+@keyframes cardShimmer {
+    0%, 64% { transform: translateX(-74%) rotate(12deg); opacity: 0; }
+    72% { opacity: 1; }
+    100% { transform: translateX(74%) rotate(12deg); opacity: 0; }
+}
+
+@keyframes photoScan {
+    0%, 58% { transform: translateX(-120%); opacity: 0; }
+    68% { opacity: 1; }
+    100% { transform: translateX(120%); opacity: 0; }
+}
+
+@keyframes screenShake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 1px, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, -1px, 0); }
+    40%, 60% { transform: translate3d(4px, 1px, 0); }
+}
+
+@keyframes scratchAura {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes scratchSpark {
+    to {
+        transform: translate(calc(var(--dx) - 50%), calc(var(--dy) - 50%)) rotate(var(--rot)) scale(0.2);
+        opacity: 0;
+    }
+}
+
+@keyframes scratchRipple {
+    to {
+        width: 150px;
+        height: 150px;
+        opacity: 0;
+    }
+}
+
+@keyframes secretRevealPop {
+    0% { transform: scale(0.94); opacity: 0.56; filter: blur(6px); }
+    55% { transform: scale(1.035); opacity: 1; filter: blur(0); }
+    100% { transform: scale(1); }
+}
+
+@keyframes countdownBeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.12); }
+}
+
+@media (max-width: 920px) {
+    .topbar {
+        padding: 12px 18px;
+    }
+
+    .nav a {
+        display: none;
+    }
+
+    .hero,
+    section {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    h1 {
+        font-size: 60px;
+    }
+
+    .hero-copy {
+        font-size: 21px;
+    }
+
+    .hero-memory-universe {
+        left: 50%;
+        top: 66%;
+        width: 96vw;
+        height: 360px;
+    }
+    .section-head,
+    .orbit-wrap,
+    .letter-box {
+        display: block;
+    }
+
+    .section-head p,
+    .letter-box p {
+        margin-top: 12px;
+    }
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .film {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .photo-frame,
+    .photo-frame:first-child {
+        min-height: 0;
+        height: 230px;
+        grid-row: auto;
+    }
+
+    .orbit {
+        margin: 0 auto 26px;
+        min-height: 360px;
+        width: min(420px, 100%);
+    }
+
+    .typed {
+        margin-top: 28px;
+    }
+}
+
+@media (max-width: 560px) {
+.film {
+    grid-template-columns: 1fr;
+}
+
+.photo-frame,
+.photo-frame:first-child {
+    height: 230px;
+}
+.brand {
+        font-size: 16px;
+    }
+
+    .nav button {
+        padding: 7px 12px;
+        font-size: 15px;
+    }
+
+    .hero {
+        min-height: 90svh;
+        padding-top: 110px;
+        padding-bottom: 44px;
+    }
+
+    .hero-memory-universe {
+        top: 68%;
+        width: 98vw;
+        height: 320px;
+    }
+
+
+    .memory-planet,
+    .memory-planet.planet-tall { width: 124px; height: 124px; border-radius: 12px; }
+    .planet-card { border-radius: 12px; }
+    h1 {
+        font-size: 46px;
+    }
+
+    .actions {
+        align-items: stretch;
+    }
+
+    .primary-button,
+    .ghost-button {
+        width: 100%;
+    }
+
+    .section-head h2,
+    .letter-box h2,
+    .secret-message h2,
+    .finale h2 {
+        font-size: 36px;
+    }
+
+    .typed {
+        min-height: 380px;
+        font-size: 21px;
+    }
+
+    .secret-message p,
+    .final-card p {
+        font-size: 21px;
+    }
+
+    .hold-button {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .final-card {
+        padding: 28px 20px;
+    }
+
+    .final-card h2 {
+        font-size: 44px;
+    }
+
+    .video-countdown {
+        padding: 18px;
+    }
+
+    .video-count {
+        min-width: 154px;
+        min-height: 154px;
+        font-size: 112px;
+    }
+
+    .video-countdown > span:not(.video-count) {
+        margin-top: 16px;
+        font-size: 25px;
+    }
+
+    .video-card video {
+        max-height: 64svh;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 1ms !important;
+    }
+}
+</style>
+</head>
+
+<body>
+<audio id="backgroundMusic" autoplay loop preload="auto">
+    <source src="NN1Y.mp3" type="audio/mpeg">
+</audio>
+<canvas id="starCanvas" aria-hidden="true"></canvas>
+<canvas id="heartCanvas" aria-hidden="true"></canvas>
+<canvas id="fxCanvas" aria-hidden="true"></canvas>
+<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+<div class="aurora-ribbons" aria-hidden="true"><span></span><span></span><span></span></div>
+<div class="meteor-layer" id="meteorLayer" aria-hidden="true"></div>
+<div class="heart-rain" id="heartRain" aria-hidden="true"></div>
+<div class="cursor-light" id="cursorLight" aria-hidden="true"></div>
+<div class="memory-flash" id="memoryFlash" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="intro-curtain" aria-hidden="true">
+    <div class="intro-mark">
+        <strong>25.07.68</strong>
+        <span>Anniversary</span>
+    </div>
+</div>
+
+<header class="topbar">
+    <a class="brand" href="./index.html" aria-label="กลับไปหน้าเปิดของขวัญ">1 Year Anniversary</a>
+    <button class="music-toggle" id="musicToggle" type="button" aria-label="Toggle background music" aria-pressed="false">MUSIC: PLAY</button>
+
+</header>
+
+<main>
+    <section class="hero" aria-label="หน้าเปิดวันครบรอบ">
+        <div class="hero-inner">
+            <div class="eyebrow">25.07.68 Anniversary </div>
+            <h1>365 วันที่มีเธอ</h1>
+
+        </div>
+        <div class="hero-memory-universe" aria-label="Orbiting video gallery">
+            <button class="memory-planet orbit-video-trigger" type="button" data-video-src="M1.mp4" aria-label="Play video M1">
+                <span class="planet-card"><video src="M1.mp4" autoplay muted loop playsinline preload="metadata"></video></span>
+            </button>
+            <button class="memory-planet orbit-video-trigger" type="button" data-video-src="M2.mp4" aria-label="Play video M2">
+                <span class="planet-card"><video src="M2.mp4" autoplay muted loop playsinline preload="metadata"></video></span>
+            </button>
+            <button class="memory-planet orbit-video-trigger" type="button" data-video-src="M3.mp4" aria-label="Play video M3">
+                <span class="planet-card"><video src="M3.mp4" autoplay muted loop playsinline preload="metadata"></video></span>
+            </button>
+            <button class="memory-planet orbit-video-trigger" type="button" data-video-src="M4.mp4" aria-label="Play video M4">
+                <span class="planet-card"><video src="M4.mp4" autoplay muted loop playsinline preload="metadata"></video></span>
+            </button>
+            <button class="memory-planet orbit-video-trigger" type="button" data-video-src="M5.mp4" aria-label="Play video M5">
+                <span class="planet-card"><video src="M5.mp4" autoplay muted loop playsinline preload="metadata"></video></span>
+            </button>
+            <button class="memory-planet orbit-video-trigger" type="button" data-video-src="M6.mp4" aria-label="Play video M6">
+                <span class="planet-card"><video src="M6.mp4" autoplay muted loop playsinline preload="metadata"></video></span>
+            </button>
+            <button class="memory-planet orbit-video-trigger" type="button" data-video-src="M7.mp4" aria-label="Play video M7">
+                <span class="planet-card"><video src="M7.mp4" autoplay muted loop playsinline preload="metadata"></video></span>
+            </button>
+            <button class="memory-planet orbit-video-trigger" type="button" data-video-src="M8.mp4" aria-label="Play video M8">
+                <span class="planet-card"><video src="M8.mp4" autoplay muted loop playsinline preload="metadata"></video></span>
+            </button>
+            <button class="memory-planet orbit-video-trigger" type="button" data-video-src="M9.mp4" aria-label="Play video M9">
+                <span class="planet-card"><video src="M9.mp4" autoplay muted loop playsinline preload="metadata"></video></span>
+            </button>            
+            <button class="memory-planet orbit-video-trigger" type="button" data-video-src="M10.mp4" aria-label="Play video M10">
+                <span class="planet-card"><video src="M10.mp4" autoplay muted loop playsinline preload="metadata"></video></span>
+            </button>
+            <button class="memory-planet orbit-video-trigger" type="button" data-video-src="M11.mp4" aria-label="Play video M11">
+                <span class="planet-card"><video src="M11.mp4" autoplay muted loop playsinline preload="metadata"></video></span>
+            </button>
+        </div>
+    </section>
+
+    <section aria-label="วงโคจรของหนึ่งปี">
+        <div class="wrap orbit-wrap">
+            <div class="orbit" aria-hidden="true">
+                <div class="orbit-ring"><span></span></div>
+                <div class="orbit-ring"><span></span></div>
+                <div class="orbit-ring"><span></span></div>
+                <div class="orbit-core"><div><strong>1</strong><span>year</span></div></div>
+            </div>
+            <div class="orbit-copy">
+                <p>ขอบคุณที่เข้ามาเป็นแสงไฟให้นะ</p>
+                <p>ผ่านอะไรมามากมายในเรื่องดีและไม่ดี</p>
+            </div>
+        </div>
+    </section>
+
+    <section aria-label="อัลบั้มรูปของเรา">
+        <div class="wrap">
+            <div class="section-head">
+                <h2>อัลบั้ม</h2>
+            </div>
+            <div class="film">
+                <button class="photo-frame" type="button" data-src="IMG_3717.jpg" data-caption="ณ สถานที่ บางคลองหลวง เขตบางกอกน้อย">
+                    <img src="IMG_3717.jpg" alt="รูปความทรงจำที่หนึ่ง">
+                    <span class="caption"><strong></strong><span>วันที่เราสองคนไปทำกิจกรรมด้วยกัน</span></span>
+                </button>
+                <button class="photo-frame" type="button" data-src="IMG_5072.jpg" data-caption="ณ สถานที่ หาดบางแสน และ หาดวอนนภา จ.ชลบุรี">
+                    <img src="IMG_5072.jpg" alt="รูปความทรงจำที่สอง">
+                    <span class="caption"><strong></strong><span>วันที่ไปเที่ยวทะเลด้วยกัน</span></span>
+                </button>
+                <button class="photo-frame memory-video-frame" type="button" data-video-src="DTHI2077.mp4" data-caption="ขอบคุณที่ทำให้ปีนี้อบอุ่นกว่าที่เคย">
+                    <video src="DTHI2077.mp4" autoplay muted loop playsinline preload="auto" aria-label="วิดีโอความทรงจำที่สาม"></video>
+                    <span class="caption"><strong></strong><span>วันที่ไปคาเฟ่ด้วยกัน</span></span>
+                </button>
+                <button class="photo-frame" type="button" data-src="B6.jpg" data-caption="อีกหนึ่งความทรงจำของเรา">
+                    <img src="B6.jpg" alt="ภาพความทรงจำข้างวิดีโอ">
+                    <span class="caption"><strong></strong><span>อีกหนึ่งวันที่น่าจดจำของเรา</span></span>
+                </button>
+                <button class="photo-frame memory-video-frame" type="button" data-video-src="B2.mp4" data-caption="อีกหนึ่งวิดีโอความทรงจำของเรา">
+                    <video src="B2.mp4" autoplay muted loop playsinline preload="auto" aria-label="วิดีโอความทรงจำเพิ่มเติม"></video>
+                    <span class="caption"><strong></strong><span>ช่วงเวลาน่ารักของเรา</span></span>
+                </button>
+                <button class="photo-frame" type="button" data-src="B1.jpg" data-caption="อีกหนึ่งภาพความทรงจำของเรา">
+                    <img src="B1.jpg" alt="ภาพความทรงจำกับน้องหมา">
+                    <span class="caption"><strong></strong><span>อีกหนึ่งวันที่น่ารักของเรา</span></span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section id="letter" aria-label="จดหมายวันครบรอบ">
+        <div class="wrap">
+            <div class="letter-box">
+
+                <div class="typed" id="typedLetter" aria-live="polite"></div>
+            </div>
+        </div>
+    </section>
+
+    <section aria-label="ข้อความลับ">
+        <div class="wrap">
+            <div class="section-head">
+                <p>ขุดบัตรสีทอง</p>
+            </div>
+            <div class="scratch-area" id="scratchArea">
+                <div class="secret-message secret-video-message">
+                    <video class="secret-video" src="B5.mp4" muted loop playsinline preload="auto" aria-label="วิดีโอความทรงจำในมุมปิดเรื่อง"></video>
+                </div>
+                <canvas id="scratchCanvas" aria-label="เปิดข้อความลับ"></canvas>
+                <div class="scratch-effects" id="scratchEffects" aria-hidden="true"></div>
+                <div class="scratch-meter" aria-hidden="true"><span id="scratchMeterFill"></span></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="finale" id="finale" aria-label="ฉากสุดท้าย">
+        <div class="wrap">
+            <h2>เอ๊ะ ยังมีอะไรอีกน้าาาา</h2>
+            <p>ลองกดสักหน่อยดีกว่า </p>
+            <button class="hold-button" type="button" id="openVideoButton"><span></span></button>
+        </div>
+    </section>
+</main>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="รูปความทรงจำ">
+    <div class="lightbox-content">
+        <img src="" alt="" id="lightboxImage">
+        <div class="lightbox-caption" id="lightboxCaption"></div>
+        <button class="close-button" type="button" id="closeLightbox">ปิดรูป</button>
+    </div>
+</div>
+
+<div class="video-overlay" id="videoOverlay" role="dialog" aria-modal="true" aria-label="วิดีโอครบรอบ">
+    <div class="video-card">
+        <video id="anniversaryVideo" src="80581.mp4" controls playsinline preload="metadata"></video>
+        <div class="video-actions">
+            <button class="close-button" type="button" id="closeVideo">ปิดวิดีโอ</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const backgroundMusic = document.getElementById("backgroundMusic");
+const musicToggle = document.getElementById("musicToggle");
+let resumeMusicAfterVideo = false;
+
+backgroundMusic.volume = 0.34;
+
+function updateMusicButton() {
+    const isPlaying = !backgroundMusic.paused;
+    musicToggle.textContent = isPlaying ? "MUSIC: ON" : "MUSIC: PLAY";
+    musicToggle.classList.toggle("is-playing", isPlaying);
+    musicToggle.setAttribute("aria-pressed", String(isPlaying));
+}
+
+function playBackgroundMusic() {
+    const playRequest = backgroundMusic.play();
+    if (playRequest) playRequest.then(updateMusicButton).catch(updateMusicButton);
+}
+
+musicToggle.addEventListener("click", () => {
+    if (backgroundMusic.paused) {
+        playBackgroundMusic();
+    } else {
+        backgroundMusic.pause();
+    }
+});
+
+backgroundMusic.addEventListener("play", updateMusicButton);
+backgroundMusic.addEventListener("pause", updateMusicButton);
+
+playBackgroundMusic();
+window.addEventListener("load", playBackgroundMusic, { once: true });
+window.addEventListener("pointerdown", (event) => {
+    if (backgroundMusic.paused && event.target !== musicToggle) playBackgroundMusic();
+}, { once: true, capture: true });
+window.addEventListener("keydown", (event) => {
+    if (backgroundMusic.paused && event.target !== musicToggle) playBackgroundMusic();
+}, { once: true, capture: true });
+const starCanvas = document.getElementById("starCanvas");
+const starCtx = starCanvas.getContext("2d");
+const heartCanvas = document.getElementById("heartCanvas");
+const heartCtx = heartCanvas.getContext("2d");
+const fxCanvas = document.getElementById("fxCanvas");
+const fx = fxCanvas.getContext("2d");
+
+const openVideoButton = document.getElementById("openVideoButton");
+const videoOverlay = document.getElementById("videoOverlay");
+const anniversaryVideo = document.getElementById("anniversaryVideo");
+const closeVideo = document.getElementById("closeVideo");
+const typedLetter = document.getElementById("typedLetter");
+const scratchArea = document.getElementById("scratchArea");
+const scratchCanvas = document.getElementById("scratchCanvas");
+const scratch = scratchCanvas.getContext("2d");
+const scratchEffects = document.getElementById("scratchEffects");
+const scratchMeterFill = document.getElementById("scratchMeterFill");
+const lightbox = document.getElementById("lightbox");
+const lightboxImage = document.getElementById("lightboxImage");
+const lightboxCaption = document.getElementById("lightboxCaption");
+const closeLightbox = document.getElementById("closeLightbox");
+const scrollProgress = document.getElementById("scrollProgress");
+const meteorLayer = document.getElementById("meteorLayer");
+const heartRain = document.getElementById("heartRain");
+const cursorLight = document.getElementById("cursorLight");
+const memoryFlash = document.getElementById("memoryFlash");
+
+const palette = ["#fff9ef", "#f6c76f", "#ff6f95", "#77e7d7", "#9c86ff"];
+const heartSymbols = ["💕","💓","💗", "รักน้าาา", "1ปีแล้วเย้", "", "💖","𓍢ִ໋🌷͙֒"];
+let stars = [];
+let fireworks = [];
+let heartPoints = [];
+let letterStarted = false;
+
+let scratching = false;
+let scratchReady = false;
+let scratchMoves = 0;
+
+const letter = `ครบครอบ หนึ่ง ปีแล้วน้าาา
+
+ขอบคุณที่เข้ามาเป็นส่วนที่น่ารักของชีวิต ขอบคุณที่ทำให้วันธรรมดามีเรื่องให้ยิ้ม และขอบคุณที่ยังอยู่ตรงนี้ด้วยกัน
+
+ขอโทษที่เอาแต่ดุจริงจังเป็นบางช่วงนะ แต่ก็รักไม่น้อยลงเลยยย ขอให้เรายังจับมือกันค่อยๆ เข้าใจกัน และรักกันให้ดีกว่าเดิมในทุกๆวัน <3`;
+
+function sizeCanvas(canvas, context) {
+    canvas.width = window.innerWidth * window.devicePixelRatio;
+    canvas.height = window.innerHeight * window.devicePixelRatio;
+    context.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+}
+
+function resizeAll() {
+    sizeCanvas(starCanvas, starCtx);
+    sizeCanvas(heartCanvas, heartCtx);
+    sizeCanvas(fxCanvas, fx);
+    seedStars();
+    seedHeart();
+    setupScratch();
+}
+
+function seedStars() {
+    stars = Array.from({ length: 150 }, () => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        r: Math.random() * 1.6 + 0.3,
+        a: Math.random() * 0.62 + 0.2,
+        v: Math.random() * 0.16 + 0.03,
+        c: palette[Math.floor(Math.random() * palette.length)]
+    }));
+}
+
+function drawStars() {
+    starCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    stars.forEach((star) => {
+        star.y -= star.v;
+        if (star.y < -8) {
+            star.y = window.innerHeight + 8;
+            star.x = Math.random() * window.innerWidth;
+        }
+        starCtx.globalAlpha = star.a;
+        starCtx.fillStyle = star.c;
+        starCtx.beginPath();
+        starCtx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+        starCtx.fill();
+    });
+    starCtx.globalAlpha = 1;
+    requestAnimationFrame(drawStars);
+}
+
+function seedHeart() {
+    const cx = window.innerWidth * 0.75;
+    const cy = Math.max(210, window.innerHeight * 0.34);
+    const scale = Math.min(window.innerWidth, window.innerHeight) * 0.018;
+    heartPoints = [];
+    for (let i = 0; i < 80; i += 1) {
+        const t = (Math.PI * 2 * i) / 80;
+        const x = 16 * Math.pow(Math.sin(t), 3);
+        const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+        heartPoints.push({
+            x: cx + x * scale,
+            y: cy + y * scale,
+            r: Math.random() * 1.9 + 1,
+            a: Math.random() * 0.5 + 0.35
+        });
+    }
+}
+
+function drawHeart() {
+    heartCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    heartCtx.lineWidth = 1;
+    for (let i = 0; i < heartPoints.length; i += 1) {
+        const p = heartPoints[i];
+        const next = heartPoints[(i + 1) % heartPoints.length];
+        heartCtx.globalAlpha = 0.14;
+        heartCtx.strokeStyle = "#fff9ef";
+        heartCtx.beginPath();
+        heartCtx.moveTo(p.x, p.y);
+        heartCtx.lineTo(next.x, next.y);
+        heartCtx.stroke();
+        heartCtx.globalAlpha = p.a;
+        heartCtx.fillStyle = i % 3 === 0 ? "#f6c76f" : "#fff9ef";
+        heartCtx.beginPath();
+        heartCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        heartCtx.fill();
+    }
+    heartCtx.globalAlpha = 1;
+    requestAnimationFrame(drawHeart);
+}
+
+class Particle {
+    constructor(x, y, angle, speed, color) {
+        this.x = x;
+        this.y = y;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.life = 90;
+        this.color = color;
+        this.size = Math.random() * 2.4 + 1;
+    }
+
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.035;
+        this.vx *= 0.99;
+        this.life -= 1;
+    }
+
+    draw() {
+        fx.globalAlpha = Math.max(this.life / 90, 0);
+        fx.fillStyle = this.color;
+        fx.beginPath();
+        fx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        fx.fill();
+        fx.globalAlpha = 1;
+    }
+}
+
+function launchFirework(x = Math.random() * window.innerWidth, y = window.innerHeight * (0.18 + Math.random() * 0.48), power = 1) {
+    const burst = [];
+    const color = palette[Math.floor(Math.random() * palette.length)];
+    const count = Math.round(86 * power);
+    for (let i = 0; i < count; i += 1) {
+        const angle = (Math.PI * 2 * i) / count;
+        const speed = 1.4 + Math.random() * 4.4 * power;
+        burst.push(new Particle(x, y, angle, speed, i % 7 === 0 ? "#fff9ef" : color));
+    }
+    fireworks.push(burst);
+}
+
+function drawFx() {
+    fx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    fireworks.forEach((burst) => {
+        burst.forEach((particle) => {
+            particle.update();
+            particle.draw();
+        });
+    });
+    fireworks = fireworks
+        .map((burst) => burst.filter((particle) => particle.life > 0))
+        .filter((burst) => burst.length > 0);
+    requestAnimationFrame(drawFx);
+}
+
+function updateProgress() {
+    const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    const progress = Math.min(100, Math.max(0, (window.scrollY / max) * 100));
+    scrollProgress.style.setProperty("--progress", `${progress}%`);
+}
+
+function createMeteor() {
+    const meteor = document.createElement("span");
+    meteor.className = "meteor";
+    meteor.style.setProperty("--x", `${Math.random() * 78 - 8}vw`);
+    meteor.style.setProperty("--y", `${Math.random() * 34 - 12}vh`);
+    meteor.style.setProperty("--len", `${80 + Math.random() * 120}px`);
+    meteor.style.setProperty("--duration", `${950 + Math.random() * 850}ms`);
+    meteor.style.setProperty("--color", palette[Math.floor(Math.random() * palette.length)]);
+    meteorLayer.appendChild(meteor);
+    setTimeout(() => meteor.remove(), 1900);
+}
+
+function createFallingHeart() {
+    const heart = document.createElement("span");
+    heart.className = "falling-heart";
+    heart.textContent = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
+    heart.style.setProperty("--x", `${Math.random() * 100}vw`);
+    heart.style.setProperty("--drift", `${Math.random() * 220 - 110}px`);
+    heart.style.setProperty("--spin", `${Math.random() * 520 - 260}deg`);
+    heart.style.setProperty("--size", `${16 + Math.random() * 22}px`);
+    heart.style.setProperty("--duration", `${5200 + Math.random() * 5200}ms`);
+    heart.style.setProperty("--color", palette[Math.floor(Math.random() * palette.length)]);
+    heartRain.appendChild(heart);
+    setTimeout(() => heart.remove(), 10800);
+}
+
+function flashMemory() {
+    memoryFlash.classList.remove("show");
+    void memoryFlash.offsetWidth;
+    memoryFlash.classList.add("show");
+}
+
+function shakeScreen() {
+    document.body.classList.remove("screen-shake");
+    void document.body.offsetWidth;
+    document.body.classList.add("screen-shake");
+    setTimeout(() => document.body.classList.remove("screen-shake"), 520);
+}
+
+function createClickBurst(event) {
+    if (event.target.closest(".lightbox, .final-overlay, .video-overlay")) return;
+    for (let i = 0; i < 16; i += 1) {
+        const spark = document.createElement("span");
+        spark.className = "click-spark";
+        spark.style.setProperty("--x", `${event.clientX}px`);
+        spark.style.setProperty("--y", `${event.clientY}px`);
+        spark.style.setProperty("--dx", `${Math.random() * 150 - 75}px`);
+        spark.style.setProperty("--dy", `${Math.random() * 150 - 75}px`);
+        spark.style.setProperty("--size", `${4 + Math.random() * 9}px`);
+        spark.style.setProperty("--color", palette[Math.floor(Math.random() * palette.length)]);
+        document.body.appendChild(spark);
+        setTimeout(() => spark.remove(), 780);
+    }
+}
+
+function cannonConfetti() {
+    for (let i = 0; i < 180; i += 1) {
+        const piece = document.createElement("span");
+        const fromLeft = i % 2 === 0;
+        piece.className = "cannon-piece";
+        piece.style.setProperty("--x", fromLeft ? "7vw" : "93vw");
+        piece.style.setProperty("--dx", `${(fromLeft ? 1 : -1) * (120 + Math.random() * 520)}px`);
+        piece.style.setProperty("--dy", `${-220 - Math.random() * 560}px`);
+        piece.style.setProperty("--rot", `${Math.random() * 1080 - 540}deg`);
+        piece.style.setProperty("--duration", `${1200 + Math.random() * 1400}ms`);
+        piece.style.setProperty("--color", palette[i % palette.length]);
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 2800);
+    }
+}
+
+function typeLetter() {
+    if (letterStarted) return;
+    letterStarted = true;
+    let index = 0;
+    const caret = document.createElement("span");
+    caret.className = "caret";
+    typedLetter.appendChild(caret);
+
+    function tick() {
+        if (index < letter.length) {
+            caret.insertAdjacentText("beforebegin", letter[index]);
+            index += 1;
+            setTimeout(tick, letter[index - 1] === "\n" ? 170 : 32);
+        }
+    }
+
+    tick();
+}
+
+function setupScratch() {
+    const rect = scratchArea.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    scratchCanvas.width = rect.width * window.devicePixelRatio;
+    scratchCanvas.height = rect.height * window.devicePixelRatio;
+    scratch.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+    scratch.globalCompositeOperation = "source-over";
+    const cover = scratch.createLinearGradient(0, 0, rect.width, rect.height);
+    cover.addColorStop(0, "#ffe7a3");
+    cover.addColorStop(0.38, "#f6c76f");
+    cover.addColorStop(0.72, "#ffcf7f");
+    cover.addColorStop(1, "#fff0b8");
+    scratch.fillStyle = cover;
+    scratch.fillRect(0, 0, rect.width, rect.height);
+    scratch.fillStyle = "rgba(255, 255, 255, 0.14)";
+    for (let x = -rect.height; x < rect.width; x += 26) {
+        scratch.beginPath();
+        scratch.moveTo(x, rect.height);
+        scratch.lineTo(x + rect.height, 0);
+        scratch.lineTo(x + rect.height + 8, 0);
+        scratch.lineTo(x + 8, rect.height);
+        scratch.closePath();
+        scratch.fill();
+    }
+    scratch.fillStyle = "#1b1014";
+    scratch.font = "26px FC Issara Rounded, Tahoma, sans-serif";
+    scratch.textAlign = "center";
+    scratch.fillText("", rect.width / 2, rect.height / 2);
+    scratchReady = true;
+    scratchMoves = 0;
+    scratchArea.style.setProperty("--scratch-progress", "0%");
+}
+
+function emitScratchMagic(x, y) {
+    if (!scratchEffects) return;
+    const colors = ["#fff9ef", "#f6c76f", "#ff6f95", "#77e7d7"];
+    if (scratchMoves % 3 === 0) {
+        const ripple = document.createElement("span");
+        ripple.className = "scratch-ripple";
+        ripple.style.setProperty("--x", `${x}px`);
+        ripple.style.setProperty("--y", `${y}px`);
+        scratchEffects.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 680);
+    }
+    for (let i = 0; i < 9; i += 1) {
+        const spark = document.createElement("span");
+        spark.className = "scratch-spark";
+        spark.style.setProperty("--x", `${x}px`);
+        spark.style.setProperty("--y", `${y}px`);
+        spark.style.setProperty("--dx", `${Math.random() * 130 - 65}px`);
+        spark.style.setProperty("--dy", `${Math.random() * 110 - 55}px`);
+        spark.style.setProperty("--rot", `${Math.random() * 540 - 270}deg`);
+        spark.style.setProperty("--size", `${4 + Math.random() * 8}px`);
+        spark.style.setProperty("--color", colors[Math.floor(Math.random() * colors.length)]);
+        scratchEffects.appendChild(spark);
+        setTimeout(() => spark.remove(), 820);
+    }
+}
+
+function scratchAt(event) {
+    if (!scratchReady || scratchArea.classList.contains("revealed")) return;
+    const rect = scratchCanvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    scratchArea.classList.add("scratching");
+    scratch.globalCompositeOperation = "destination-out";
+    scratch.beginPath();
+    scratch.arc(x, y, 25, 0, Math.PI * 2);
+    scratch.fill();
+    scratchMoves += 1;
+    emitScratchMagic(x, y);
+    if (scratchMoves % 8 === 0) checkScratch(false);
+}
+
+function checkScratch(finalCheck = true) {
+    if (!scratchReady || scratchArea.classList.contains("revealed")) return;
+    const sample = scratch.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height).data;
+    let cleared = 0;
+    for (let i = 3; i < sample.length; i += 16) {
+        if (sample[i] < 20) cleared += 1;
+    }
+    const ratio = cleared / (sample.length / 16);
+    scratchArea.style.setProperty("--scratch-progress", `${Math.min(100, Math.round(ratio * 100))}%`);
+    if (ratio > 0.6) {
+        scratchArea.classList.add("revealed");
+        scratchArea.classList.remove("scratching");
+        const revealedSecretVideo = scratchArea.querySelector(".secret-video");
+        if (revealedSecretVideo) {
+            revealedSecretVideo.currentTime = 0;
+            revealedSecretVideo.play().catch(() => {});
+        }
+        flashMemory();
+        shakeScreen();
+        cannonConfetti();
+        launchFirework(window.innerWidth / 2, window.innerHeight * 0.35, 1.25);
+        setTimeout(() => launchFirework(window.innerWidth * 0.28, window.innerHeight * 0.32, 0.9), 180);
+        setTimeout(() => launchFirework(window.innerWidth * 0.72, window.innerHeight * 0.32, 0.9), 320);
+    } else if (finalCheck) {
+        scratchArea.classList.remove("scratching");
+    }
+}
+
+function pauseOrbitPreviews() {
+    document.querySelectorAll(".memory-planet video").forEach((video) => video.pause());
+}
+
+function playOrbitPreviews() {
+    document.querySelectorAll(".memory-planet video").forEach((video) => {
+        video.muted = true;
+        const previewPlay = video.play();
+        if (previewPlay) previewPlay.catch(() => {});
+    });
+}
+
+function openVideoOverlay(videoSource = "80581.mp4") {
+    if (typeof videoSource !== "string") videoSource = "80581.mp4";
+    resumeMusicAfterVideo = !backgroundMusic.paused;
+    backgroundMusic.pause();
+    pauseOrbitPreviews();
+    document.body.classList.add("locked");
+    videoOverlay.classList.add("show");
+    if (anniversaryVideo.getAttribute("src") !== videoSource) {
+        anniversaryVideo.src = videoSource;
+        anniversaryVideo.load();
+    }
+    anniversaryVideo.currentTime = 0;
+    anniversaryVideo.muted = false;
+    const playAttempt = anniversaryVideo.play();
+    if (playAttempt) playAttempt.catch(() => {});
+    closeVideo.focus();
+}
+
+function closeVideoOverlay() {
+    videoOverlay.classList.remove("show");
+    anniversaryVideo.pause();
+    anniversaryVideo.currentTime = 0;
+    playOrbitPreviews();
+    if (resumeMusicAfterVideo) playBackgroundMusic();
+    resumeMusicAfterVideo = false;
+    document.body.classList.remove("locked");
+}document.querySelectorAll(".photo-frame").forEach((button) => {
+    button.addEventListener("pointermove", (event) => {
+        const rect = button.getBoundingClientRect();
+        const x = ((event.clientX - rect.left) / rect.width - 0.5) * 10;
+        const y = ((event.clientY - rect.top) / rect.height - 0.5) * -10;
+        button.style.transform = `perspective(900px) rotateY(${x}deg) rotateX(${y}deg) translateY(-3px)`;
+    });
+
+    button.addEventListener("pointerleave", () => {
+        button.style.transform = "";
+    });
+
+    button.addEventListener("click", () => {
+        flashMemory();
+        launchFirework(window.innerWidth * 0.5, window.innerHeight * 0.34, 0.72);
+        if (button.dataset.videoSrc) {
+            openVideoOverlay(button.dataset.videoSrc);
+            return;
+        }
+        lightboxImage.src = button.dataset.src;
+        lightboxImage.alt = button.querySelector("img").alt;
+        lightboxCaption.textContent = button.dataset.caption;
+        lightbox.classList.add("show");
+        document.body.classList.add("locked");
+        closeLightbox.focus();
+    });
+});
+
+const albumMemoryVideos = document.querySelectorAll(".memory-video-frame video");
+albumMemoryVideos.forEach((video) => video.play().catch(() => {}));
+
+const secretRevealVideo = document.querySelector(".secret-video");
+if (secretRevealVideo) {
+    secretRevealVideo.pause();
+    secretRevealVideo.currentTime = 0;
+}
+
+const memoryUniverse = document.querySelector(".hero-memory-universe");
+const memoryPlanets = Array.from(document.querySelectorAll(".memory-planet"));
+const prefersReducedOrbitMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+let memoryOrbitPhase = -Math.PI / 2;
+let memoryOrbitLastFrame = performance.now();
+let memoryOrbitPaused = false;
+let memoryOrbitDirection = 1;
+let memoryOrbitDragging = false;
+let memoryOrbitDidDrag = false;
+let memoryOrbitStartX = 0;
+let memoryOrbitStartY = 0;
+let memoryOrbitStartPhase = 0;
+let memoryOrbitLastPointerX = 0;
+let memoryOrbitPointerId = null;
+let memoryOrbitSuppressClickUntil = 0;
+let memoryOrbitWidth = memoryUniverse.clientWidth;
+let memoryOrbitHeight = memoryUniverse.clientHeight;
+
+const memoryOrbitResizeObserver = new ResizeObserver((entries) => {
+    const rect = entries[0].contentRect;
+    memoryOrbitWidth = rect.width;
+    memoryOrbitHeight = rect.height;
+});
+memoryOrbitResizeObserver.observe(memoryUniverse);
+
+function drawMemoryOrbit(time) {
+    const elapsed = Math.min(34, time - memoryOrbitLastFrame);
+    memoryOrbitLastFrame = time;
+    if (!memoryOrbitPaused && !prefersReducedOrbitMotion.matches) {
+        memoryOrbitPhase += elapsed * (Math.PI * 2 / 42000) * memoryOrbitDirection;
+    }
+
+    const width = memoryOrbitWidth;
+    const height = memoryOrbitHeight;
+    const radiusX = width * 0.43;
+    const radiusY = height * 0.32;
+
+    memoryPlanets.forEach((planet, index) => {
+        const angle = memoryOrbitPhase + index * Math.PI * 2 / memoryPlanets.length;
+        const depth = (Math.sin(angle) + 1) / 2;
+        const x = Math.cos(angle) * radiusX;
+        const y = Math.sin(angle) * radiusY;
+        const scale = 0.78 + depth * 0.24;
+        const tilt = Math.cos(angle) * -8;
+        planet.style.opacity = `${0.62 + depth * 0.38}`;
+        planet.style.zIndex = `${10 + Math.round(depth * 20)}`;
+        planet.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) rotate(${tilt}deg) scale(${scale})`;
+    });
+
+    requestAnimationFrame(drawMemoryOrbit);
+}
+
+memoryUniverse.addEventListener("pointerenter", (event) => {
+    if (event.pointerType === "mouse") memoryOrbitPaused = true;
+});
+memoryUniverse.addEventListener("pointerleave", (event) => {
+    if (event.pointerType === "mouse") memoryOrbitPaused = false;
+});
+memoryUniverse.addEventListener("focusin", (event) => {
+    if (event.target.classList.contains("memory-planet")) memoryOrbitPaused = true;
+});
+memoryUniverse.addEventListener("focusout", (event) => {
+    if (event.target.classList.contains("memory-planet")) memoryOrbitPaused = false;
+});
+memoryUniverse.addEventListener("pointerdown", (event) => {
+    if (event.button !== undefined && event.button !== 0) return;
+    memoryOrbitDragging = true;
+    memoryOrbitDidDrag = false;
+    memoryOrbitPointerId = event.pointerId;
+    memoryOrbitStartX = event.clientX;
+    memoryOrbitStartY = event.clientY;
+    memoryOrbitLastPointerX = event.clientX;
+    memoryOrbitStartPhase = memoryOrbitPhase;
+    memoryOrbitPaused = true;
+});
+
+memoryUniverse.addEventListener("pointermove", (event) => {
+    if (!memoryOrbitDragging || event.pointerId !== memoryOrbitPointerId) return;
+    const deltaX = event.clientX - memoryOrbitStartX;
+    const deltaY = event.clientY - memoryOrbitStartY;
+    if (!memoryOrbitDidDrag && Math.abs(deltaX) > 6 && Math.abs(deltaX) > Math.abs(deltaY)) {
+        memoryOrbitDidDrag = true;
+        memoryUniverse.classList.add("is-dragging");
+        memoryUniverse.setPointerCapture(event.pointerId);
+    }
+    if (!memoryOrbitDidDrag) return;
+    memoryOrbitPhase = memoryOrbitStartPhase + deltaX / Math.max(320, memoryUniverse.clientWidth) * Math.PI * 2;
+    const pointerStep = event.clientX - memoryOrbitLastPointerX;
+    if (Math.abs(pointerStep) > 0.5) memoryOrbitDirection = pointerStep > 0 ? 1 : -1;
+    memoryOrbitLastPointerX = event.clientX;
+    event.preventDefault();
+});
+
+function finishMemoryOrbitDrag(event) {
+    if (!memoryOrbitDragging || event.pointerId !== memoryOrbitPointerId) return;
+    if (memoryOrbitDidDrag) memoryOrbitSuppressClickUntil = performance.now() + 420;
+    memoryOrbitDragging = false;
+    memoryOrbitPointerId = null;
+    memoryOrbitPaused = false;
+    memoryUniverse.classList.remove("is-dragging");
+    if (memoryUniverse.hasPointerCapture(event.pointerId)) memoryUniverse.releasePointerCapture(event.pointerId);
+}
+
+memoryUniverse.addEventListener("pointerup", finishMemoryOrbitDrag);
+memoryUniverse.addEventListener("pointercancel", finishMemoryOrbitDrag);
+playOrbitPreviews();
+requestAnimationFrame(drawMemoryOrbit);
+document.querySelectorAll(".orbit-video-trigger").forEach((button) => {
+    button.addEventListener("click", (event) => {
+        if (performance.now() < memoryOrbitSuppressClickUntil) {
+            event.preventDefault();
+            return;
+        }
+        openVideoOverlay(button.dataset.videoSrc);
+    });
+});
+
+anniversaryVideo.addEventListener("ended", closeVideoOverlay);
+closeLightbox.addEventListener("click", () => {
+    lightbox.classList.remove("show");
+    document.body.classList.remove("locked");
+});
+
+lightbox.addEventListener("click", (event) => {
+    if (event.target === lightbox) {
+        lightbox.classList.remove("show");
+        document.body.classList.remove("locked");
+    }
+});
+
+scratchCanvas.addEventListener("pointerdown", (event) => {
+    scratching = true;
+    scratchCanvas.setPointerCapture(event.pointerId);
+    scratchAt(event);
+});
+
+scratchCanvas.addEventListener("pointermove", (event) => {
+    if (!scratching) return;
+    scratchAt(event);
+});
+
+scratchCanvas.addEventListener("pointerup", () => {
+    scratching = false;
+    checkScratch(true);
+});
+
+scratchCanvas.addEventListener("pointerleave", () => {
+    scratching = false;
+    checkScratch(true);
+});
+
+scratchCanvas.addEventListener("pointercancel", () => {
+    scratching = false;
+    checkScratch(true);
+});
+
+
+openVideoButton.addEventListener("click", () => openVideoOverlay("80581.mp4"));
+closeVideo.addEventListener("click", closeVideoOverlay);
+videoOverlay.addEventListener("click", (event) => {
+    if (event.target === videoOverlay) closeVideoOverlay();
+});
+
+
+window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+        closeVideoOverlay();
+        lightbox.classList.remove("show");
+        document.body.classList.remove("locked");
+    }
+});
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+        if (entry.isIntersecting) typeLetter();
+    });
+}, { threshold: 0.35 });
+
+observer.observe(document.querySelector(".letter-box"));
+
+window.addEventListener("resize", resizeAll);
+window.addEventListener("scroll", updateProgress, { passive: true });
+window.addEventListener("pointermove", (event) => {
+    cursorLight.style.setProperty("--mx", `${event.clientX}px`);
+    cursorLight.style.setProperty("--my", `${event.clientY}px`);
+});
+window.addEventListener("pointerdown", createClickBurst);
+
+const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+        if (entry.isIntersecting) entry.target.classList.add("in-view");
+    });
+}, { threshold: 0.16 });
+
+document.querySelectorAll("main > section").forEach((section) => {
+    section.classList.add("section-fx");
+    revealObserver.observe(section);
+});
+
+resizeAll();
+updateProgress();
+drawStars();
+drawHeart();
+drawFx();
+setInterval(createMeteor, 1800);
+setInterval(createFallingHeart, 760);
+setTimeout(() => launchFirework(window.innerWidth * 0.75, window.innerHeight * 0.32, 1), 1800);
+</script>
+</body>
+</html>
+
+
+
